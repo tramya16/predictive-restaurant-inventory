@@ -14,7 +14,7 @@ PRIMS is a Flask-based app that predicts ingredient demand for restaurants, redu
 Clone the repo to your local machine:
 
 ```bash
-git clone https://github.com/yourusername/predictive-restaurant-inventory.git
+git clone https://github.com/tramya16/predictive-restaurant-inventory.git
 cd predictive-restaurant-inventory
 ```
 
