@@ -1,4 +1,3 @@
-```markdown
 # Predictive Restaurant Inventory Management System (PRIMS)
 
 PRIMS is a Flask-based app that predicts ingredient demand for restaurants, reducing waste and preventing stockouts. It uses machine learning to automate inventory management and order placement.
@@ -18,7 +17,7 @@ Clone the repo to your local machine:
 git clone https://github.com/yourusername/predictive-restaurant-inventory.git
 cd predictive-restaurant-inventory
 ```
-```
+
 
 ### Step 2: Set Up the Virtual Environment
 
