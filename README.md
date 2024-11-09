@@ -18,6 +18,7 @@ Clone the repo to your local machine:
 git clone https://github.com/yourusername/predictive-restaurant-inventory.git
 cd predictive-restaurant-inventory
 ```
+```
 
 ### Step 2: Set Up the Virtual Environment
 
@@ -69,9 +70,12 @@ predictive-restaurant-inventory/
 │   ├── app.py
 │   ├── static/
 │   └── templates/
-├── .venv/            # Virtual environment
-├── requirements.txt  # Python dependencies
-└── README.md         # This file
+├── documentation/
+│   └── images/          # Folder for documentation images
+├── .venv/                # Virtual environment
+├── requirements.txt      # Python dependencies
+└── README.md             # This file
+
 ```
 
 ---
