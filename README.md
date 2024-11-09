@@ -42,7 +42,11 @@ Install required dependencies:
 ```bash
 pip install -r requirements.txt
 ```
+- **or**:
 
+```bash
+pip3 install -r requirements.txt
+```
 ### Step 4: Run the Flask Application
 
 Run the Flask app with:
@@ -70,7 +74,7 @@ predictive-restaurant-inventory/
 │   ├── static/
 │   └── templates/
 ├── documentation/
-│   └── images/          # Folder for documentation images
+│   └── images/          # Folder for documentation images, can add for ppt
 ├── .venv/                # Virtual environment
 ├── requirements.txt      # Python dependencies
 └── README.md             # This file
