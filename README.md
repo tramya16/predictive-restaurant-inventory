@@ -51,12 +51,12 @@ Run the Flask app with:
 
 - **On Windows**:
   ```bash
-  python -m flask run
+  python app/app.py
   ```
 
 - **On macOS/Linux**:
   ```bash
-  python3 -m flask run
+  python3 app/app.py
   ```
 
 Visit `http://127.0.0.1:5000/` in your browser to see the app.
@@ -71,9 +71,13 @@ predictive-restaurant-inventory/
 │   ├── app.py
 │   ├── static/
 │   └── templates/
-├── .venv/                  # Virtual environment
-├── requirements.txt        # Python dependencies
-└── README.md               # This file
+│       └── index.html
+├── documentation/
+│   ├── ppt/
+│   ├── images/
+│   └── proofs/
+├── requirements.txt
+└── README.md
 ```
 
 ---
