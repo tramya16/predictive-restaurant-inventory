@@ -1,4 +1,32 @@
-venv/
+# Ignore Python cache files
 __pycache__/
-*.pyc
-*.pyo
+*.py[cod]
+
+# Ignore virtual environment folder
+.venv/
+
+# Ignore environment variables (if any)
+.env
+
+# Ignore Flask-related files
+instance/
+
+# Ignore IDE/editor-specific files (add more depending on your setup)
+.vscode/
+.idea/
+
+# Ignore macOS system files
+.DS_Store
+
+# Ignore Windows system files
+Thumbs.db
+
+# Ignore test or coverage reports
+*.log
+*.coverage
+*.tox
+*.nox
+*.coverage.*
+nosetests.xml
+coverage.xml
+*.hypothesis/
