@@ -19,7 +19,7 @@ cd predictive-restaurant-inventory
 ```
 
 
-### Step 2: Set Up the Virtual Environment
+### Step 2: Set Up the Virtual Environment(Optional)
 
 Create and activate the virtual environment:
 
