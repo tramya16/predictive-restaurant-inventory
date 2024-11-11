@@ -94,4 +94,3 @@ predictive-restaurant-inventory/
 
 - Always activate the virtual environment before running the app.
 - Do not commit `.venv/` to Git; it’s ignored via `.gitignore`.
-```

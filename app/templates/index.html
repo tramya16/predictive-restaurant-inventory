@@ -3,9 +3,325 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRIMS - Predictive Restaurant Inventory Management System</title>
+    <title>Restaurant Inventory Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f7f8fa;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2.5rem;
+            color: #4f75a3;
+        }
+
+        #current-week {
+            text-align: center;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: #3a3a3a;
+        }
+
+        .tile-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .tile {
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .tile.danger {
+            background-color: #f8d7da;
+            border: 2px solid #f5c6cb;
+        }
+
+        .tile:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .tile h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: #4f75a3;
+        }
+
+        .tile p {
+            font-size: 1rem;
+            margin-bottom: 5px;
+        }
+
+        .tile .quantity {
+            font-size: 1.2rem;
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .tile .predicted, .tile .simulated {
+            font-size: 1rem;
+            color: #6c757d;
+        }
+
+        #orders-by-category {
+            margin-bottom: 40px;
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        #orders-by-category h3 {
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+            color: #4f75a3;
+        }
+
+        #orders-by-category p {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        #current-time {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 1.2rem;
+            color: #3a3a3a;
+        }
+
+        .category {
+            display: inline-block;
+            background-color: #f0f8ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+            font-weight: bold;
+        }
+
+        .category.italian {
+            background-color: #d1f1e1;
+        }
+
+        .category.fast-food {
+            background-color: #ffedcc;
+        }
+
+        .category.soup {
+            background-color: #e0f7fa;
+        }
+
+        #current-week span {
+            font-weight: bold;
+            color: #28a745;
+        }
+
+        /* Chart Container */
+        #accuracy-chart {
+            margin-top: 40px;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+        }
+        canvas {
+            max-width: 100%;
+            height: 400px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Welcome to PRIMS</h1>
+    <div class="container">
+        <h1>Predictive Restaurant Inventory Management</h1>
+
+        <!-- Current Week -->
+        <div id="current-week">
+            <h2>Current Week: <span id="current-week-number">Loading...</span></h2>
+        </div>
+
+        <!-- Inventory Section -->
+        <div class="tile-container" id="inventory">
+            <div class="tile" id="pasta">
+                <h3>Pasta</h3>
+                <p class="quantity" id="pasta-quantity">Loading...</p>
+                <p class="predicted">Predicted: <span id="pasta-predicted">Loading...</span></p>
+                <p class="simulated">Simulated: <span id="pasta-simulated">Loading...</span></p>
+            </div>
+            <div class="tile" id="cheese_pizza">
+                <h3>Cheese Pizza</h3>
+                <p class="quantity" id="cheese_pizza-quantity">Loading...</p>
+                <p class="predicted">Predicted: <span id="cheese_pizza-predicted">Loading...</span></p>
+                <p class="simulated">Simulated: <span id="cheese_pizza-simulated">Loading...</span></p>
+            </div>
+            <div class="tile" id="garlic_bread">
+                <h3>Garlic Bread</h3>
+                <p class="quantity" id="garlic_bread-quantity">Loading...</p>
+                <p class="predicted">Predicted: <span id="garlic_bread-predicted">Loading...</span></p>
+                <p class="simulated">Simulated: <span id="garlic_bread-simulated">Loading...</span></p>
+            </div>
+            <div class="tile" id="tomato_soup">
+                <h3>Tomato Soup</h3>
+                <p class="quantity" id="tomato_soup-quantity">Loading...</p>
+                <p class="predicted">Predicted: <span id="tomato_soup-predicted">Loading...</span></p>
+                <p class="simulated">Simulated: <span id="tomato_soup-simulated">Loading...</span></p>
+            </div>
+        </div>
+
+        <!-- Orders by Category -->
+        <div id="orders-by-category">
+            <h3>Orders by Category</h3>
+            <p><span class="category italian" id="orders-italian">Italian: Loading...</span></p>
+            <p><span class="category fast-food" id="orders-fast-food">Fast Food: Loading...</span></p>
+            <p><span class="category soup" id="orders-soup">Soup: Loading...</span></p>
+        </div>
+
+        <!-- Model Accuracy Chart -->
+        <div id="accuracy-chart">
+            <h3>Model Accuracy Over Time</h3>
+            <canvas id="accuracy-chart-canvas"></canvas>
+        </div>
+
+        <!-- Current Time -->
+        <div id="current-time">
+            <p>Current Time: <span id="current-time-display">Loading...</span></p>
+        </div>
+    </div>
+
+    <script>
+        const INITIAL_STOCK = 100;  // Initial stock set to 100 for comparison
+        const THRESHOLD_PERCENTAGE = 0.25;  // 25% threshold for low stock
+
+        let accuracyData = [];
+
+        async function fetchData() {
+            try {
+                const response = await fetch('/mocked-data');
+                const data = await response.json();
+
+                // Update current week
+                document.getElementById('current-week-number').textContent = data.current_week;
+
+                // Update inventory quantities and check for danger
+                updateInventoryTile('pasta', data.inventory.pasta);
+                updateInventoryTile('cheese_pizza', data.inventory.cheese_pizza);
+                updateInventoryTile('garlic_bread', data.inventory.garlic_bread);
+                updateInventoryTile('tomato_soup', data.inventory.tomato_soup);
+
+                // Update predicted and simulated orders
+                document.getElementById('pasta-predicted').textContent = data.predicted_food_orders.pasta;
+                document.getElementById('cheese_pizza-predicted').textContent = data.predicted_food_orders.cheese_pizza;
+                document.getElementById('garlic_bread-predicted').textContent = data.predicted_food_orders.garlic_bread;
+                document.getElementById('tomato_soup-predicted').textContent = data.predicted_food_orders.tomato_soup;
+
+                document.getElementById('pasta-simulated').textContent = data.simulated_food_orders.pasta;
+                document.getElementById('cheese_pizza-simulated').textContent = data.simulated_food_orders.cheese_pizza;
+                document.getElementById('garlic_bread-simulated').textContent = data.simulated_food_orders.garlic_bread;
+                document.getElementById('tomato_soup-simulated').textContent = data.simulated_food_orders.tomato_soup;
+
+                // Update orders by category
+                document.getElementById('orders-italian').textContent = `Italian: ${data.orders_by_category.Italian}`;
+                document.getElementById('orders-fast-food').textContent = `Fast Food: ${data.orders_by_category.FastFood}`;
+                document.getElementById('orders-soup').textContent = `Soup: ${data.orders_by_category.Soup}`;
+
+                // Update model accuracy data for the graph
+                accuracyData = data.model_accuracy;  // Receive all accuracy data
+
+                // Update model accuracy chart
+                updateAccuracyChart();
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        }
+
+        function updateAccuracyChart() {
+            const ctx = document.getElementById('accuracy-chart-canvas').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({ length: accuracyData.length }, (_, index) => `Week ${index + 1}`),
+                    datasets: [{
+                        label: 'Model Accuracy (%)',
+                        data: accuracyData,
+                        borderColor: '#28a745',
+                        backgroundColor: 'rgba(40, 167, 69, 0.2)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            min: 0,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'Accuracy (%)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Week'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateInventoryTile(food, stock) {
+            const tile = document.getElementById(food);
+            const stockElement = document.getElementById(`${food}-quantity`);
+            stockElement.textContent = stock;
+
+            if (stock < INITIAL_STOCK * THRESHOLD_PERCENTAGE) {
+                tile.classList.add('danger');
+            } else {
+                tile.classList.remove('danger');
+            }
+        }
+
+        function updateCurrentTime() {
+                const now = new Date();
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                const seconds = String(now.getSeconds()).padStart(2, '0');
+                const formattedTime = `${hours}:${minutes}:${seconds}`;
+                
+                document.getElementById('current-time-display').textContent = formattedTime;
+            }
+
+        setInterval(fetchData, 1000);  // Fetch data every 3 seconds
+        setInterval(updateCurrentTime, 1000);  // Update current time every second
+
+    </script>
 </body>
 </html>
