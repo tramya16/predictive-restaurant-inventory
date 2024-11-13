@@ -8,10 +8,10 @@ class MockedProcess:
 
     def __init__(self):
         self.inventory = {
-            "pasta": 100,
-            "cheese_pizza": 100,
-            "garlic_bread": 100,
-            "tomato_soup": 100
+            "eggs": 100,
+            "spaghetti": 100,
+            "bread": 100,
+            "tomato_sauce": 100
         }
         self.simulated_food_orders = []
         self.predicted_food_orders = []
@@ -21,10 +21,10 @@ class MockedProcess:
 
     def generate_predicted_food_orders(self):
         return {
-            "pasta": random.randint(5, 10),
-            "cheese_pizza": random.randint(5, 10),
-            "garlic_bread": random.randint(5, 10),
-            "tomato_soup": random.randint(5, 10)
+            "eggs": random.randint(5, 10),
+            "spaghetti": random.randint(5, 10),
+            "bread": random.randint(5, 10),
+            "tomato_sauce": random.randint(5, 10)
         }
 
     def generate_simulated_food_orders(self, predicted_orders):
@@ -48,16 +48,16 @@ class MockedProcess:
 
     def generate_order_by_category(self):
         if not self.simulated_food_orders:
-            return {'Italian': 0, 'FastFood': 0, 'Soup': 0}
+            return {'Pasta': 0, 'Omlette': 0, 'GarlicBread': 0}
 
-        categories = {'Italian': 0, 'FastFood': 0, 'Soup': 0}
+        categories = {'Pasta': 0, 'Omlette': 0, 'GarlicBread': 0}
         for food in self.simulated_food_orders[-1]:
-            if food in ['pasta', 'cheese_pizza']:
-                categories['Italian'] += self.simulated_food_orders[-1][food]
-            elif food == 'garlic_bread':
-                categories['FastFood'] += self.simulated_food_orders[-1][food]
-            elif food == 'tomato_soup':
-                categories['Soup'] += self.simulated_food_orders[-1][food]
+            if food in ['spaghetti', 'tomato_sauce']:
+                categories['Pasta'] += self.simulated_food_orders[-1][food]
+            elif food == 'bread':
+                categories['GarlicBread'] += self.simulated_food_orders[-1][food]
+            elif food == 'eggs':
+                categories['Omlette'] += self.simulated_food_orders[-1][food]
         return categories
 
     def calculate_accuracy(self, predicted, actual, tolerance=2):
