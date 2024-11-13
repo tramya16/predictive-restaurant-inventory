@@ -1,4 +1,3 @@
-# app.py
 from flask import Flask, render_template, jsonify
 from datetime import datetime
 from mocked_process import MockedProcess
@@ -6,6 +5,8 @@ import time
 
 app = Flask(__name__)
 process = MockedProcess()
+
+MAX_HISTORY = 10  # Limit for historical data
 
 @app.route('/mocked-data')
 def get_mocked_data():
@@ -18,9 +19,17 @@ def get_mocked_data():
         accuracy = process.calculate_accuracy(predicted_food, actual_food)
 
         # Append new food order data
-        process.predicted_food_orders.append(predicted_food)
-        process.simulated_food_orders.append(actual_food)
-        process.model_accuracy.append(accuracy)
+        process.predicted_food_orders.append(predicted_food)  # Correctly appending to the list
+        process.simulated_food_orders.append(actual_food)  # Correctly appending to the list
+        process.model_accuracy.append(accuracy)  # Correctly appending to the list
+
+        # Limit the history size
+        if len(process.predicted_food_orders) > MAX_HISTORY:
+            process.predicted_food_orders.pop(0)
+        if len(process.simulated_food_orders) > MAX_HISTORY:
+            process.simulated_food_orders.pop(0)
+        if len(process.model_accuracy) > MAX_HISTORY:
+            process.model_accuracy.pop(0)
 
         # Update the ingredient inventory based on food orders
         process.update_inventory(actual_food)
