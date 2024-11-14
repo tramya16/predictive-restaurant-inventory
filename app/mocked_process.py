@@ -4,14 +4,24 @@ import time
 
 class MockedProcess:
     LOW_STOCK_THRESHOLD = 10
-    RESTOCK_AMOUNT = 20
+    RESTOCK_AMOUNT = 20  # Fixed restock amount
 
     def __init__(self):
         self.inventory = {
-            "eggs": 100,
-            "spaghetti": 100,
-            "bread": 100,
-            "tomato_sauce": 100
+            "tomato": 40,
+            "spaghetti": 40,
+            "cheese": 40,
+            "basil": 40,
+        }
+        self.recipes = {
+            "Pasta": {
+                "ingredients": {
+                    "tomato": {"quantity": 2, "unit": "grams"},
+                    "spaghetti": {"quantity": 20, "unit": "grams"},
+                    "cheese": {"quantity": 20, "unit": "grams"},
+                    "basil": {"quantity": 5, "unit": "grams"}
+                }
+            }
         }
         self.simulated_food_orders = []
         self.predicted_food_orders = []
@@ -21,10 +31,7 @@ class MockedProcess:
 
     def generate_predicted_food_orders(self):
         return {
-            "eggs": random.randint(5, 10),
-            "spaghetti": random.randint(5, 10),
-            "bread": random.randint(5, 10),
-            "tomato_sauce": random.randint(5, 10)
+            "Pasta": random.randint(3, 5)
         }
 
     def generate_simulated_food_orders(self, predicted_orders):
@@ -35,30 +42,42 @@ class MockedProcess:
         return simulated_orders
 
     def update_inventory(self, orders):
-        for food, qty in orders.items():
-            if food in self.inventory:
-                self.inventory[food] -= qty
-                if self.inventory[food] < self.LOW_STOCK_THRESHOLD:
-                    self.restock_inventory(food)
+        restocked_ingredients = {}
 
-    def restock_inventory(self, food_item):
-        if self.inventory[food_item] < self.LOW_STOCK_THRESHOLD:
-            self.inventory[food_item] += self.RESTOCK_AMOUNT
-            print(f"Restocked {food_item} with {self.RESTOCK_AMOUNT} items.")
+        for food, order_qty in orders.items():
+            if food in self.recipes:
+                for ingredient, details in self.recipes[food]["ingredients"].items():
+                    required_qty = details["quantity"] * order_qty
+                    if ingredient in self.inventory:
+                        # If not enough stock, set the inventory to 0 and restock immediately
+                        if self.inventory[ingredient] < required_qty:
+                            print(f"Not enough stock for {ingredient}. Restocking...")
+                            self.inventory[ingredient] = 0  # Set to 0 since it's out of stock
+                            restocked_qty = self.restock_inventory(ingredient)
+                            restocked_ingredients[ingredient] = restocked_qty
+                        else:
+                            # Subtract the required quantity if enough stock is available
+                            self.inventory[ingredient] -= required_qty
 
-    def generate_order_by_category(self):
-        if not self.simulated_food_orders:
-            return {'Pasta': 0, 'Omlette': 0, 'GarlicBread': 0}
+                        # Check if the inventory falls below the low stock threshold after updating
+                        if self.inventory[ingredient] < self.LOW_STOCK_THRESHOLD:
+                            restocked_qty = self.restock_inventory(ingredient)
+                            if restocked_qty > 0:
+                                restocked_ingredients[ingredient] = restocked_qty
+            else:
+                print(f"No recipe found for {food}. Skipping.")
+        
+        return restocked_ingredients
 
-        categories = {'Pasta': 0, 'Omlette': 0, 'GarlicBread': 0}
-        for food in self.simulated_food_orders[-1]:
-            if food in ['spaghetti', 'tomato_sauce']:
-                categories['Pasta'] += self.simulated_food_orders[-1][food]
-            elif food == 'bread':
-                categories['GarlicBread'] += self.simulated_food_orders[-1][food]
-            elif food == 'eggs':
-                categories['Omlette'] += self.simulated_food_orders[-1][food]
-        return categories
+        
+
+    def restock_inventory(self, ingredient):
+        if self.inventory[ingredient] < self.LOW_STOCK_THRESHOLD:
+            # Restock by the fixed amount
+            self.inventory[ingredient] += self.RESTOCK_AMOUNT
+            print(f"Restocked {ingredient} with {self.RESTOCK_AMOUNT} units. New stock: {self.inventory[ingredient]}")
+            return self.RESTOCK_AMOUNT
+        return 0
 
     def calculate_accuracy(self, predicted, actual, tolerance=2):
         correct = 0

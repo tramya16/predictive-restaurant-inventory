@@ -19,41 +19,58 @@
             <button id="toggle-button" class="btn btn-outline-primary">Start</button>
         </div>
 
-        <!-- Inventory Section -->
-        <div class="tile-container" id="inventory">
-            <div class="tile" id="egg">
-                <h3>Eggs</h3>
-                <p class="quantity" id="egg-quantity">Loading...</p>
-                <p class="predicted">Predicted: <span id="egg-predicted">Loading...</span></p>
-                <p class="simulated">Simulated: <span id="egg-simulated">Loading...</span></p>
+        <!-- Pasta Orders Section with Actual and Predicted Orders -->
+        <div id="orders-pasta">
+            <h3>Orders for Pasta</h3>
+            
+            <!-- Container for displaying Actual and Predicted Orders -->
+            <div class="order-container">
+                <div class="order-icons-container" id="pasta-order-icons"></div>
+                
+                <!-- Display Actual Orders -->
+                <div class="order-count" id="pasta-order-count">Actual Orders: Loading...</div>
+                
+                <!-- Display Predicted Orders -->
+                <div class="predicted-order-count" id="pasta-predicted-order-count">Predicted Orders: Loading...</div>
             </div>
-            <div class="tile" id="spaghetti">
-                <h3>spaghetti</h3>
-                <p class="quantity" id="spaghetti-quantity">Loading...</p>
-                <p class="predicted">Predicted: <span id="spaghetti-predicted">Loading...</span></p>
-                <p class="simulated">Simulated: <span id="spaghetti-simulated">Loading...</span></p>
-            </div>
-            <div class="tile" id="bread">
-                <h3>Bread</h3>
-                <p class="quantity" id="bread-quantity">Loading...</p>
-                <p class="predicted">Predicted: <span id="bread-predicted">Loading...</span></p>
-                <p class="simulated">Simulated: <span id="bread-simulated">Loading...</span></p>
-            </div>
-            <div class="tile" id="tomato_sauce">
-                <h3>Tomato Soup</h3>
-                <p class="quantity" id="tomato_sauce-quantity">Loading...</p>
-                <p class="predicted">Predicted: <span id="tomato_sauce-predicted">Loading...</span></p>
-                <p class="simulated">Simulated: <span id="tomato_sauce-simulated">Loading...</span></p>
-            </div>
+
+            <!-- Order status text (Low, Medium, High Demand) -->
+            <div class="order-status" id="pasta-order-status">Loading...</div>
         </div>
 
-        <!-- Orders by Category -->
-        <div id="orders-by-category">
-            <h3>Orders by Category</h3>
-            <p><span class="category Pasta" id="orders-Pasta">Pasta: Loading...</span></p>
-            <p><span class="category Omlette" id="orders-Omlette">Omlette: Loading...</span></p>
-            <p><span class="category GarlicBread" id="orders-GarlicBread">Garlic Bread: Loading...</span></p>
+
+        <!-- Inventory Section -->
+        <div class="tile-container" id="inventory">
+            <div class="tile" id="tomato">
+                <img src="static/images/tomato.png" alt="Tomato" class="icon image">
+                <h3>Tomato</h3>
+                <p class="quantity" id="tomato-quantity">Loading...</p>
+                <div class="restocked-notification" id="tomato-restocked-notification"></div> <!-- Restock Notification -->
+            </div>
+        
+            <div class="tile" id="spaghetti">
+                <img src="static/images/spaghetti.png" alt="Spaghetti" class="icon image">
+                <h3>Spaghetti</h3>
+                <p class="quantity" id="spaghetti-quantity">Loading...</p>
+                <div class="restocked-notification" id="spaghetti-restocked-notification"></div>
+            </div>
+        
+            <div class="tile" id="cheese">
+                <img src="static/images/cheese.png" alt="Cheese" class="icon image">
+                <h3>Cheese</h3>
+                <p class="quantity" id="cheese-quantity">Loading...</p>
+                <div class="restocked-notification" id="cheese-restocked-notification"></div>
+            </div>
+        
+            <div class="tile" id="basil">
+                <img src="static/images/basil.png" alt="Basil" class="icon image">
+                <h3>Basil</h3>
+                <p class="quantity" id="basil-quantity">Loading...</p>
+                <div class="restocked-notification" id="basil-restocked-notification"></div>
+            </div>
         </div>
+        
+        
 
         <!-- Model Accuracy Chart -->
         <div id="accuracy-chart">
