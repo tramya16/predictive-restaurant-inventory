@@ -13,6 +13,11 @@
     <div class="container">
         <h1>Predictive Restaurant Inventory Management</h1>
 
+        <!-- Current Time -->
+        <!-- <div id="current-time">
+            <p>Current Time: <span id="current-time-display">Loading...</span></p>
+        </div> -->
+
         <!-- Current Week -->
         <div id="current-week">
             <h2>Current Week: <span id="current-week-number">Loading...</span></h2>
@@ -34,8 +39,7 @@
                 <div class="predicted-order-count" id="pasta-predicted-order-count">Predicted Orders: Loading...</div>
             </div>
 
-            <!-- Order status text (Low, Medium, High Demand) -->
-            <div class="order-status" id="pasta-order-status">Loading...</div>
+
         </div>
 
 
@@ -45,28 +49,24 @@
                 <img src="static/images/tomato.png" alt="Tomato" class="icon image">
                 <h3>Tomato</h3>
                 <p class="quantity" id="tomato-quantity">Loading...</p>
-                <div class="restocked-notification" id="tomato-restocked-notification"></div> <!-- Restock Notification -->
             </div>
         
             <div class="tile" id="spaghetti">
                 <img src="static/images/spaghetti.png" alt="Spaghetti" class="icon image">
                 <h3>Spaghetti</h3>
                 <p class="quantity" id="spaghetti-quantity">Loading...</p>
-                <div class="restocked-notification" id="spaghetti-restocked-notification"></div>
             </div>
         
             <div class="tile" id="cheese">
                 <img src="static/images/cheese.png" alt="Cheese" class="icon image">
                 <h3>Cheese</h3>
                 <p class="quantity" id="cheese-quantity">Loading...</p>
-                <div class="restocked-notification" id="cheese-restocked-notification"></div>
             </div>
         
             <div class="tile" id="basil">
                 <img src="static/images/basil.png" alt="Basil" class="icon image">
                 <h3>Basil</h3>
                 <p class="quantity" id="basil-quantity">Loading...</p>
-                <div class="restocked-notification" id="basil-restocked-notification"></div>
             </div>
         </div>
         
@@ -78,10 +78,6 @@
             <canvas id="accuracy-chart-canvas"></canvas>
         </div>
 
-        <!-- Current Time -->
-        <div id="current-time">
-            <p>Current Time: <span id="current-time-display">Loading...</span></p>
-        </div>
     </div>
 
     <script src="static/js/script.js"></script></body>

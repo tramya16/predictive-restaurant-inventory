@@ -1,7 +1,8 @@
-const INITIAL_STOCK = 100;  // Initial stock set to 100 for comparison
-const THRESHOLD_PERCENTAGE = 0.25;  // 25% threshold for low stock
+const INITIAL_STOCK = 50; // Initial stock set to 100 for comparison
+const THRESHOLD_PERCENTAGE = 0.25; // 25% threshold for low stock
 let accuracyChart = null;
 let accuracyData = [];
+let weekLabels = [];
 
 let fetchInterval = null, timeInterval = null;
 
@@ -11,7 +12,8 @@ async function fetchData() {
         const data = await response.json();
 
         // Update current week
-        document.getElementById('current-week-number').textContent = data.current_week;
+        const currentWeek = data.current_week;
+        document.getElementById('current-week-number').textContent = currentWeek;
 
         // Update inventory quantities and check for danger
         updateInventoryTile('tomato', data.inventory.tomato, data.restocked_ingredients.tomato);
@@ -19,33 +21,62 @@ async function fetchData() {
         updateInventoryTile('cheese', data.inventory.cheese, data.restocked_ingredients.cheese);
         updateInventoryTile('basil', data.inventory.basil, data.restocked_ingredients.basil);
 
-
         // Update orders by Food Items
-        // Example usage - Update pasta orders dynamically (replace 10 with actual order count)
-        updatePastaOrdersUIWithIconsAndStatus(data.food_orders_this_week.Pasta,data.predicted_food_orders.Pasta);
+        updatePastaOrdersUIWithIconsAndStatus(data.food_orders_this_week.Pasta, data.predicted_food_orders.Pasta);
 
         // Update model accuracy data for the graph
-        accuracyData = data.model_accuracy;  // Receive all accuracy data
-
-        // Update model accuracy chart
-        updateAccuracyChart();
-
+        const latestAccuracy = data.model_accuracy; // Get accuracy for the current week
+        console.log(latestAccuracy)
+        updateAccuracyChart(currentWeek, latestAccuracy);
 
     } catch (error) {
         console.error('Error fetching data:', error);
     }
 }
 
-function updateAccuracyChart() {
-    const ctx = document.getElementById('accuracy-chart-canvas').getContext('2d');
+function updateAccuracyChart(currentWeek, latestAccuracy) {
+    if (!accuracyChart) {
+        console.error('Chart not initialized.');
+        return;
+    }
 
-    if (accuracyChart) {
-accuracyChart.destroy();
-        }
-        accuracyChart =new Chart(ctx, {
+    // Initialize weekLabels and accuracyData if it's the first update
+    if (weekLabels.length === 0) {
+        weekLabels.push('Week 1');  // Add the first week label
+        accuracyData.push(latestAccuracy);  // Add the accuracy data for Week 1
+    }
+
+    // Ensure the weekLabels and accuracyData arrays have enough entries for the current week
+    while (weekLabels.length < currentWeek) {
+        weekLabels.push(`Week ${weekLabels.length + 1}`);  // Add more weeks as needed
+        accuracyData.push(null);  // Add placeholder data for missing weeks
+    }
+
+    // Validate latestAccuracy and update only the current week's accuracy
+    if (latestAccuracy !== undefined && latestAccuracy !== null) {
+        console.log(latestAccuracy);
+        
+        // Update the accuracy value for the current week
+        accuracyData[currentWeek - 1] = latestAccuracy;
+    } else {
+        console.warn(`Invalid accuracy for week ${currentWeek}:`, latestAccuracy);
+    }
+
+    // Update the chart data
+    accuracyChart.data.labels = weekLabels;
+    accuracyChart.data.datasets[0].data = accuracyData;
+
+    // Update the chart with the latest data
+    accuracyChart.update();
+}
+
+function initializeAccuracyChart() {
+    const ctx = document.getElementById('accuracy-chart-canvas').getContext('2d');
+    
+    accuracyChart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: Array.from({ length: accuracyData.length }, (_, index) => `Week ${index + 1}`),
+            labels: weekLabels, // Dynamic week labels
             datasets: [{
                 label: 'Model Accuracy (%)',
                 data: accuracyData,
@@ -59,13 +90,13 @@ accuracyChart.destroy();
         options: {
             responsive: true,
             plugins: {
-    legend: {
-        labels: {
-            usePointStyle: true,
-            boxWidth: 0 
-        }
-    }
-},
+                legend: {
+                    labels: {
+                        usePointStyle: true,
+                        boxWidth: 0
+                    }
+                }
+            },
             scales: {
                 y: {
                     min: 0,
@@ -84,34 +115,42 @@ accuracyChart.destroy();
             }
         }
     });
-
-    console.log("Chart Updates");
 }
 
 function updateInventoryTile(food, stock, restockedAmount) {
     const tile = document.getElementById(food);
     const stockElement = document.getElementById(`${food}-quantity`);
-    const restockedNotification = document.getElementById(`${food}-restocked-notification`);
-
-    // Update stock quantity
     stockElement.textContent = stock;
 
-    // Show or hide the restocked notification
+    // Create restock amount animation inside the tile
     if (restockedAmount > 0) {
-        restockedNotification.textContent = `+${restockedAmount} Restocked`;
-        restockedNotification.classList.add('show');  // Show notification with animation
-    } else {
-        restockedNotification.classList.remove('show');  // Hide notification
+        const restockNotification = document.createElement('span');
+        restockNotification.classList.add('restock-notification');
+        restockNotification.textContent = `+${restockedAmount}`;
+
+        // Append the notification to the tile's quantity element for animation
+        stockElement.appendChild(restockNotification);
+
+        // Animate the restock notification
+        setTimeout(() => {
+            restockNotification.classList.add('show');
+        }, 100); // Delay to ensure it's visible for animation
+
+        // Clean up the notification after a short delay
+        setTimeout(() => {
+            restockNotification.classList.remove('show');
+            setTimeout(() => {
+                restockNotification.remove();
+            }, 500); // Wait for the fade-out animation to finish
+        }, 2000); // Show restock for 2 seconds
     }
 
-    // Calculate the percentage of remaining stock
     const percentage = stock / INITIAL_STOCK;
 
-    // Change tile color based on stock level
     if (percentage < THRESHOLD_PERCENTAGE) {
         tile.classList.add('danger');
         tile.classList.remove('warning', 'success');
-    } else if (percentage < 0.7) {  // If stock is between 25% and 70%
+    } else if (percentage < 0.7) {
         tile.classList.add('warning');
         tile.classList.remove('danger', 'success');
     } else {
@@ -120,74 +159,47 @@ function updateInventoryTile(food, stock, restockedAmount) {
     }
 }
 
-
 function updatePastaOrdersUIWithIconsAndStatus(actualOrderCount, predictedOrderCount) {
     const iconContainer = document.getElementById('pasta-order-icons');
     const orderCountDisplay = document.getElementById('pasta-order-count');
     const predictedOrderCountDisplay = document.getElementById('pasta-predicted-order-count');
-    const orderStatus = document.getElementById('pasta-order-status');
-    
-    const maxOrders = 20;  // Set your max order threshold
 
-    // Clear previous icons
     iconContainer.innerHTML = '';
 
-    // Add pasta icons based on actual order count
     for (let i = 0; i < actualOrderCount; i++) {
         const icon = document.createElement('span');
-        icon.style.fontSize = '100px';  // Adjust the size of the emoji
-        icon.innerHTML = '&#127837;';  // Pasta emoji
+        icon.style.fontSize = '100px';
+        icon.innerHTML = '&#127837;';
         iconContainer.appendChild(icon);
     }
 
-    // Display the actual number of orders
     orderCountDisplay.textContent = `Actual Orders: ${actualOrderCount}`;
-
-    // Display the predicted number of orders
     predictedOrderCountDisplay.textContent = `Predicted Orders: ${predictedOrderCount}`;
-
-    // Calculate order status based on actual order count
-    const orderPercentage = (actualOrderCount / maxOrders) * 100;
-    if (orderPercentage < 30) {
-        orderStatus.textContent = 'Low Demand';
-        orderStatus.className = 'low-demand';
-    } else if (orderPercentage < 70) {
-        orderStatus.textContent = 'Medium Demand';
-        orderStatus.className = 'medium-demand';
-    } else {
-        orderStatus.textContent = 'High Demand';
-        orderStatus.className = 'high-demand';
-    }
 }
 
 function updateCurrentTime() {
-        const now = new Date();
-        const hours = String(now.getHours()).padStart(2, '0');
-        const minutes = String(now.getMinutes()).padStart(2, '0');
-        const seconds = String(now.getSeconds()).padStart(2, '0');
-        const formattedTime = `${hours}:${minutes}:${seconds}`;
-        
-        document.getElementById('current-time-display').textContent = formattedTime;
-
-    }
-
-//  setInterval(fetchData, 1000);  // Fetch data every 3 seconds
-//  setInterval(updateCurrentTime, 1000);  // Update current time every second
+    const now = new Date();
+    const formattedTime = now.toLocaleTimeString('en-US', { hour12: false });
+    document.getElementById('current-time-display').textContent = formattedTime;
+}
 
 // Toggle button functionality
 document.getElementById('toggle-button').addEventListener('click', () => {
     const button = document.getElementById('toggle-button');
     if (!fetchInterval && !timeInterval) {
-        // Start intervals
         fetchInterval = setInterval(fetchData, 1000);
         timeInterval = setInterval(updateCurrentTime, 1000);
         button.textContent = 'Stop';
     } else {
-        // Stop intervals
         clearInterval(fetchInterval);
         clearInterval(timeInterval);
         fetchInterval = null;
         timeInterval = null;
         button.textContent = 'Start';
     }
+});
+
+// Initialize the chart when the page loads
+document.addEventListener('DOMContentLoaded', () => {
+    initializeAccuracyChart();
 });

@@ -201,18 +201,24 @@ canvas {
 }
 
 /* Restocked amount animation */
-.restocked {
-    font-size: 1.2rem;
-    color: #28a745;
+.restock-notification {
+    display: inline-block;
+    background-color: #4CAF50; /* Green for restock */
+    color: white;
+    padding: 3px 8px;
+    border-radius: 3px;
+    margin-left: 10px;
     font-weight: bold;
+    font-size: 0.9em;
     opacity: 0;
     transition: opacity 0.5s ease-in-out;
 }
 
-.restocked-animation {
+.restock-notification.show {
     opacity: 1;
-    animation: restockAnim 1s ease-out;
 }
+
+
 
 @keyframes restockAnim {
     0% {
@@ -261,3 +267,4 @@ canvas {
 h3 {
     font-size: 18px;
 }
+
