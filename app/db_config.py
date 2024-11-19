@@ -19,6 +19,7 @@ class PRIMSDatabase:
         self.simulated_food_orders = []
         self.predicted_food_orders = []
         self.model_accuracy = []
+        self.restocked_ingredients = dict()
 
     def create_tables(self):
         # Inventory table
@@ -168,6 +169,7 @@ class PRIMSDatabase:
             if current_quantity < 10:
                 restock_qty = 10 - current_quantity  # Calculate how much to restock
                 inventory_updates[row['ingredient_id']] += restock_qty  # Restock to 10 units
+                self.restocked_ingredients[row['ingredient_name']] = restock_qty
                 print(f"Restocked ingredient {row['ingredient_name']} to 10 units from {current_quantity}.")
 
             # Apply predicted stock updates (if stock_update < 0)
@@ -298,4 +300,3 @@ class PRIMSDatabase:
 # db_url = 'mysql+pymysql://admin:admin@localhost/prims?ssl_disabled=true'
 # csv_dir = 'csv'
 # prims_db = PRIMSDatabase(db_url, csv_dir)
-# prims_db.update_inventory(5)
