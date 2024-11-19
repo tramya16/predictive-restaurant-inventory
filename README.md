@@ -145,7 +145,7 @@ predictive-restaurant-inventory/
 
 - **Flask command not found**: Use `python app/app.py` instead of `flask run`.
 - **Virtual environment not activating**: Ensure you use the correct command for your OS.
-- **mysqld.exe: Table '.\mysql\user' is marked as crashed and should be repaired**: Copy the files `db.frm`, `db.MAD`, and `db.MAI` from `C:\xampp\mysql\backup\mysql` and replace them in `C:\xampp\mysql\data\mysql`. 
+- **mysqld.exe: Table '.\mysql\db' is marked as crashed and should be repaired**: Copy the files `db.frm`, `db.MAD`, and `db.MAI` from `C:\xampp\mysql\backup\mysql` and replace them in `C:\xampp\mysql\data\mysql`. 
 
 ---
 
