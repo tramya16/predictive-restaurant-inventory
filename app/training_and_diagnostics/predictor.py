@@ -1,10 +1,11 @@
 from typing import Union
 import os
 import joblib
+import numpy as np
 import pandas as pd
-from sklearn.metrics import mean_squared_error
-from skforecast.sarimax._sarimax import Sarimax
-from statsmodels.tsa.holtwinters.results import HoltWintersResultsWrapper
+from sklearn.metrics import mean_squared_error, mean_absolute_percentage_error
+from statsmodels.tsa.holtwinters.results import HoltWintersResults
+from statsmodels.tsa.statespace.sarimax import SARIMAXResultsWrapper
 
 
 class Muaddib:
@@ -15,14 +16,31 @@ class Muaddib:
         model_path = os.path.join(base_path, "models", f"{model_name}.pkl")
         self.model = joblib.load(model_path)
 
-    def predict(self, period: int):
-        if isinstance(self.model, Sarimax):
-            return self.model.predict(steps=period)['pred'].astype(int)
-        elif isinstance(self.model, HoltWintersResultsWrapper):
-            return self.model.forecast(steps=period).astype(int)
+    def predict(self, start_dt: str, end_dt: str):
+        if isinstance(self.model, SARIMAXResultsWrapper):
+            return self.model.predict(start=start_dt, end=end_dt).astype(int)
+        elif isinstance(self.model, HoltWintersResults):
+            return self.model.predict(start=start_dt, end=end_dt).astype(int)
         else:
             raise Exception(f"Unknown model type: {type(self.model)}")
 
     @staticmethod
-    def calculate_error(predictions: Union[pd.Series, list], actual_values: Union[pd.Series, list]):
-        return mean_squared_error(actual_values, predictions)
+    def calculate_rmse(predictions: Union[pd.Series, list], actual_values: Union[pd.Series, list]):
+        return np.sqrt(mean_squared_error(actual_values, predictions))
+
+    @staticmethod
+    def calculate_mape(predictions: Union[pd.Series, list], actual_values: Union[pd.Series, list]):
+        return mean_absolute_percentage_error(actual_values, predictions)
+
+
+# if __name__ == "__main__":
+#     from app.simultation.order_simulator import OrderSimulator
+#
+#     oracle = Muaddib("sk_sarima")
+#     simulator = OrderSimulator()
+#     predicted = oracle.predict("2024-01-01", "2024-01-07")
+#     rmse = oracle.calculate_rmse(predicted, simulator.simulate_orders("2024-01-01", "2024-01-07"))
+#     mape = oracle.calculate_mape(predicted, simulator.simulate_orders("2024-01-01", "2024-01-07"))
+#     print(predicted)
+#     print((1 - (rmse / np.mean(simulator.simulate_orders("2024-01-01", "2024-01-07")))) * 100)
+#     print(100 - mape)

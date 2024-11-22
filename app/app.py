@@ -1,12 +1,9 @@
 from flask import Flask, render_template, jsonify
 from datetime import datetime
-from mocked_process import MockedProcess
-import time
 from db_config import *
+from settings import db_url, csv_dir, START_DATE
 
 app = Flask(__name__)
-db_url = 'mysql+pymysql://admin:admin@localhost/prims?ssl_disabled=true'
-csv_dir = './csv'
 db = PRIMSDatabase(db_url, csv_dir)
 MAX_HISTORY = 10  # Limit for historical data
 
@@ -17,6 +14,7 @@ def get_mocked_data():
 
     # Generate new data only if 5 seconds have passed
     if current_time - db.last_update_time >= 5:
+        start_date = pd.to_datetime(START_DATE)
 
         db.update_performance_parameter(db.current_week, "model_accuracy", random.uniform(80.0, 95.0))
         db.predict_random_orders(db.current_week)
