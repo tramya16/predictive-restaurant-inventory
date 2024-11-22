@@ -49,10 +49,9 @@ class PRIMSDatabase:
 
         # Orders table
         self.orders = Table('orders', self.metadata,
-                            Column('order_id', Integer, primary_key=True),
-                            Column('week', Integer),
-                            Column('recipe_id', Integer, ForeignKey('recipes.recipe_id')),
-                            Column('price', Float)
+                            Column('week', Integer, primary_key=True),
+                            Column('recipe_id', Integer, ForeignKey('recipes.recipe_id'), primary_key=True),
+                            Column('num_orders', Integer)
                             )
 
         # Performance Parameters table
@@ -82,7 +81,7 @@ class PRIMSDatabase:
     def load_all_data(self):
         self.load_and_insert_data("ingredients.csv", "ingredient", ["ingredient_id"])
         self.load_and_insert_data("recipes.csv", "recipes", ["recipe_id", "ingredient_id"])
-        self.load_and_insert_data("orders.csv", "orders", ["order_id"])
+        self.load_and_insert_data("orders.csv", "orders", ["week", "recipe_id"])
         self.load_and_insert_data("inventory.csv", "inventory", ["ingredient_id"])
         self.load_and_insert_data("predicted_orders.csv", "predicted_orders", ["week", "recipe_id"])
         self.load_and_insert_data("performance_parameters.csv", "performance_parameters", ["parameter_id"])
@@ -226,9 +225,31 @@ class PRIMSDatabase:
                     f"UPDATE performance_matrix SET value = {round(value, 2)} WHERE week = {week} AND parameter_id = {parameter['parameter_id'].iloc[0]}")
             conn.execute(sql)
 
+    def get_orders(self, week):
+        orders = pd.read_sql(
+            f'''SELECT a.week, b.recipe_name, a.num_orders FROM orders a INNER JOIN recipes b ON a.recipe_id = b.recipe_id WHERE a.week = {week}''',
+            con=self.engine
+        )
+
+        if not orders.empty:
+            return orders
+        else:
+            return None
+    
     def update_orders(self, df):
-        orders = df[['week', 'recipe_id', 'price']]
-        orders.to_sql('orders', con=self.engine, index=False, if_exists='append')
+        orders = df[['week', 'recipe_id', 'num_orders']]
+
+        print(orders)
+
+        with self.engine.begin() as conn:
+            for _, row in orders.iterrows():
+                if self.get_orders(row.week) is None:
+                    sql = text(
+                        f"INSERT INTO orders (week, recipe_id, num_orders) VALUES ({row.week}, {row.recipe_id}, {row.num_orders})")
+                else:
+                    sql = text(
+                        f"UPDATE orders SET num_orders = {row.num_orders} WHERE week = {row.week} AND recipe_id = {row.recipe_id}")
+                conn.execute(sql)
 
     def get_predicted_orders(self, week):
         predicted_orders = pd.read_sql(
@@ -268,24 +289,33 @@ class PRIMSDatabase:
 
     def generate_simulated_food_orders(self, week):
         recipe_ids = pd.read_sql(
-            "SELECT DISTINCT a.recipe_id, b.recipe_name FROM orders a INNER JOIN recipes b ON a.recipe_id = b.recipe_id",
+            "SELECT DISTINCT b.recipe_id, b.recipe_name FROM recipes b",
             con=self.engine)
-        recipe_ids['week'] = week
-        recipe_ids['price'] = [random.randint(1, 10) for _ in range(len(recipe_ids))]
-        chosen_idx = np.random.choice(recipe_ids.index, replace=True, size=random.randint(100, 150))
-        simulated_orders = recipe_ids.loc[chosen_idx]
-        self.update_orders(simulated_orders)
-        return simulated_orders
+        simulated_orders = pd.DataFrame()
+        simulated_orders['week'] = [week]
+        simulated_orders['num_orders'] = [random.randint(1000, 1500)]
+        simulated_orders['recipe_id'] = [recipe_ids["recipe_id"][0]]
+        simulated_orders['recipe_name'] = [recipe_ids["recipe_name"][0]]
+
+        print(simulated_orders)
+
+        if not simulated_orders.empty:
+            self.update_orders(simulated_orders)
+            return simulated_orders
+        else:
+            return None
 
     def generate_simulated_food_orders_json(self, week):
         simulated_orders_df = self.generate_simulated_food_orders(week)
 
+        print(simulated_orders_df)
+
         simulated_orders_dict = dict()
 
-        recipe_counts = simulated_orders_df['recipe_name'].value_counts()
-
-        for recipe, count in recipe_counts.items():
-            simulated_orders_dict[recipe] = count
+        if simulated_orders_df is not None:
+            for index, row in simulated_orders_df.iterrows():
+                simulated_orders_dict[simulated_orders_df.loc[index, 'recipe_name']] = int(
+                    simulated_orders_df.loc[index, 'num_orders'])
 
         return simulated_orders_dict
 
@@ -297,7 +327,7 @@ class PRIMSDatabase:
         chosen_idx = np.random.choice(recipe_ids.index, replace=True, size=random.randint(100, 150))
         predicted_orders = recipe_ids.loc[chosen_idx]
 
-        print(predicted_orders)
+        # print(predicted_orders)
 
         predicted_orders_df = pd.DataFrame(columns=['week', 'recipe_id', 'num_orders'])
 
@@ -316,5 +346,6 @@ class PRIMSDatabase:
 # # Instantiate the class and pass in the database URL and CSV directory path
 # db_url = 'mysql+pymysql://{}:{}@{}/{}?ssl_disabled=true'.format(DB_USERNAME, DB_PASSWORD, DB_HOST, DB_NAME)
 # prims_db = PRIMSDatabase(db_url, CSV_DIR)
-
+# prims_db.generate_simulated_food_orders_json(0)
+# prims_db.get_predicted_orders_json(0)
 
