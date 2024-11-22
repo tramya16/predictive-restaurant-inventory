@@ -1,15 +1,18 @@
 import pandas as pd
 from sqlalchemy import create_engine, Table, MetaData, Column, Integer, String, ForeignKey, Float, inspect, text, insert
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy_utils import database_exists, create_database
 import random
 import numpy as np
 import time
-
+from settings import *
 
 class PRIMSDatabase:
     def __init__(self, db_url, csv_dir):
         # Initialize database connection and metadata
         self.engine = create_engine(db_url)
+        if not database_exists(self.engine.url):
+            create_database(self.engine.url)
         self.metadata = MetaData()
         self.csv_dir = csv_dir
         self.current_week = 0
@@ -21,6 +24,7 @@ class PRIMSDatabase:
         self.predicted_food_orders = []
         self.model_accuracy = []
         self.restocked_ingredients = dict()
+        self.sd = SD_WEEKLY_ORDERS 
 
     def create_tables(self):
         # Inventory table
@@ -117,7 +121,7 @@ class PRIMSDatabase:
         '''
         predicted_ingredients = pd.read_sql(query, con=self.engine)
         predicted_ingredients['stock_update'] = predicted_ingredients.inventory_qty - (
-                    predicted_ingredients.num_orders * predicted_ingredients.ingredient_qty)
+                    predicted_ingredients.num_orders * predicted_ingredients.ingredient_qty) - self.sd
         return predicted_ingredients
 
     def get_predicted_ingredients_json(self, week):
@@ -170,16 +174,15 @@ class PRIMSDatabase:
 
             # Restocking logic: If inventory goes below 10, restock to 10 units
             current_quantity = row['inventory_qty']
-            if current_quantity < 10:
-                restock_qty = 10 - current_quantity  # Calculate how much to restock
-                inventory_updates[row['ingredient_id']] += restock_qty  # Restock to 10 units
-                self.restocked_ingredients[row['ingredient_name']] = restock_qty
-                print(f"Restocked ingredient {row['ingredient_name']} to 10 units from {current_quantity}.")
 
             # Apply predicted stock updates (if stock_update < 0)
             if row['stock_update'] < 0:
                 predicted_update_qty = -1 * row['stock_update']  # Apply the predicted stock update (can be negative)
                 inventory_updates[row['ingredient_id']] += predicted_update_qty
+                restock_qty = predicted_update_qty  # Calculate how much to restock
+                inventory_updates[row['ingredient_id']] += restock_qty  # Restock to 10 units
+                self.restocked_ingredients[row['ingredient_name']] = restock_qty
+                print(f"Restocked ingredient {row['ingredient_name']} to 10 units from {current_quantity}.")
 
         # Perform the inventory update in one batch if there are any updates
         if inventory_updates:
@@ -269,7 +272,7 @@ class PRIMSDatabase:
             con=self.engine)
         recipe_ids['week'] = week
         recipe_ids['price'] = [random.randint(1, 10) for _ in range(len(recipe_ids))]
-        chosen_idx = np.random.choice(recipe_ids.index, replace=True, size=random.randint(1, 5))
+        chosen_idx = np.random.choice(recipe_ids.index, replace=True, size=random.randint(100, 150))
         simulated_orders = recipe_ids.loc[chosen_idx]
         self.update_orders(simulated_orders)
         return simulated_orders
@@ -291,7 +294,7 @@ class PRIMSDatabase:
             "SELECT DISTINCT a.recipe_id, b.recipe_name FROM orders a INNER JOIN recipes b ON a.recipe_id = b.recipe_id",
             con=self.engine)
         recipe_ids['week'] = week
-        chosen_idx = np.random.choice(recipe_ids.index, replace=True, size=random.randint(1, 5))
+        chosen_idx = np.random.choice(recipe_ids.index, replace=True, size=random.randint(100, 150))
         predicted_orders = recipe_ids.loc[chosen_idx]
 
         print(predicted_orders)
@@ -310,7 +313,8 @@ class PRIMSDatabase:
 
         return predicted_orders_df
 
-# Instantiate the class and pass in the database URL and CSV directory path
-# db_url = 'mysql+pymysql://admin:admin@localhost/prims?ssl_disabled=true'
-# csv_dir = 'csv'
-# prims_db = PRIMSDatabase(db_url, csv_dir)
+# # Instantiate the class and pass in the database URL and CSV directory path
+# db_url = 'mysql+pymysql://{}:{}@{}/{}?ssl_disabled=true'.format(DB_USERNAME, DB_PASSWORD, DB_HOST, DB_NAME)
+# prims_db = PRIMSDatabase(db_url, CSV_DIR)
+
+

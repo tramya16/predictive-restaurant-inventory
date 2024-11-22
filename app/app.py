@@ -1,12 +1,11 @@
 from flask import Flask, render_template, jsonify
 from datetime import datetime
 from db_config import *
-from settings import db_url, csv_dir, START_DATE
+from settings import *
 
 app = Flask(__name__)
-db = PRIMSDatabase(db_url, csv_dir)
-MAX_HISTORY = 10  # Limit for historical data
-
+db_url = 'mysql+pymysql://{}:{}@{}/{}?ssl_disabled=true'.format(DB_USERNAME, DB_PASSWORD, DB_HOST, DB_NAME)
+db = PRIMSDatabase(db_url, CSV_DIR)
 
 @app.route('/mocked-data')
 def get_mocked_data():
