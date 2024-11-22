@@ -16,14 +16,14 @@ def main():
     print("original dataframe: ")
     print(df)
 
-    # Best model: ARIMA(4, 0, 0)(2, 0, 1)[7]
-    model_builder.build_sarima_model(col_name="orders", order=(4, 0, 0), seasonal_order=(2, 0, 1, 7))
+    # Best model: ARIMA(0, 0, 0)(3, 0, 0)[7]
+    model_builder.build_sarima_model(col_name="orders", order=(0, 0, 0), seasonal_order=(3, 0, 0, 7))
     test_result = model_builder.test_model(col_name="orders")
     plot_df["auto_sarima_values"] = test_result[0]
     plot_df["auto_sarima_rmse"] = test_result[1]
 
-    # Best Parameters: (0, 0, 3, 2, 0, 3, 7)
-    model_builder.build_sarima_model(col_name="orders", order=(0, 0, 3), seasonal_order=(2, 0, 3, 7))
+    # Best Parameters: (2, 0, 1, 3, 0, 3, 7)
+    model_builder.build_sarima_model(col_name="orders", order=(2, 0, 1), seasonal_order=(3, 0, 3, 7))
     test_result = model_builder.test_model(col_name="orders")
     plot_df["sk_sarima_values"] = test_result[0]
     plot_df["sk_sarima_rmse"] = test_result[1]
@@ -46,13 +46,13 @@ def main():
                                                     trend="add")
     model_builder.save_model(path=path, filename="holt_winters")
 
-    order = (4, 0, 0)
-    seasonal_order = (2, 0, 1, 7)
+    order = (0, 0, 0)
+    seasonal_order = (3, 0, 0, 7)
     model_builder.train_complete_sarima_model(col_name="orders", order=order, seasonal_order=seasonal_order)
     model_builder.save_model(path=path, filename="auto_sarima")
 
-    order = (0, 0, 3)
-    seasonal_order = (2, 0, 3, 7)
+    order = (2, 0, 1)
+    seasonal_order = (3, 0, 3, 7)
     model_builder.train_complete_sarima_model(col_name="orders", order=order, seasonal_order=seasonal_order)
     model_builder.save_model(path=path, filename="sk_sarima")
 

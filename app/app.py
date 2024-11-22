@@ -10,6 +10,7 @@ csv_dir = './csv'
 db = PRIMSDatabase(db_url, csv_dir)
 MAX_HISTORY = 10  # Limit for historical data
 
+
 @app.route('/mocked-data')
 def get_mocked_data():
     current_time = time.time()
@@ -37,7 +38,7 @@ def get_mocked_data():
 
     # Prepare data to send to frontend
     data = {
-        "predicted_food_orders": db.predicted_food_orders, # Currently predicted randomly using function
+        "predicted_food_orders": db.predicted_food_orders,  # Currently predicted randomly using function
         "food_orders_this_week": db.simulated_food_orders,  # Currently simulated randomly 
         "model_accuracy": db.model_accuracy,
         "inventory": db.get_inventory_json(),
@@ -49,10 +50,10 @@ def get_mocked_data():
     return jsonify(data)
 
 
-
 @app.route('/')
 def index():
     return render_template('index.html')
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

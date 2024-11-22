@@ -5,6 +5,7 @@ import random
 import numpy as np
 import time
 
+
 class PRIMSDatabase:
     def __init__(self, db_url, csv_dir):
         # Initialize database connection and metadata
@@ -33,7 +34,7 @@ class PRIMSDatabase:
                                 Column('ingredient_id', Integer, primary_key=True),
                                 Column('ingredient_name', String(255))
                                 )
-        
+
         # Recipes table (composite primary key)
         self.recipes = Table('recipes', self.metadata,
                              Column('recipe_id', Integer, primary_key=True),
@@ -59,7 +60,8 @@ class PRIMSDatabase:
         # Performance Matrix table
         self.performance_matrix = Table('performance_matrix', self.metadata,
                                         Column('week', Integer, primary_key=True),
-                                        Column('parameter_id', Integer, ForeignKey('performance_parameters.parameter_id'), primary_key=True),
+                                        Column('parameter_id', Integer,
+                                               ForeignKey('performance_parameters.parameter_id'), primary_key=True),
                                         Column('value', Float)
                                         )
 
@@ -114,9 +116,10 @@ class PRIMSDatabase:
             ORDER BY d.ingredient_name
         '''
         predicted_ingredients = pd.read_sql(query, con=self.engine)
-        predicted_ingredients['stock_update'] = predicted_ingredients.inventory_qty - (predicted_ingredients.num_orders * predicted_ingredients.ingredient_qty)
+        predicted_ingredients['stock_update'] = predicted_ingredients.inventory_qty - (
+                    predicted_ingredients.num_orders * predicted_ingredients.ingredient_qty)
         return predicted_ingredients
-    
+
     def get_predicted_ingredients_json(self, week):
         predicted_ingredients_df = self.get_predicted_ingredients(week)
 
@@ -124,8 +127,9 @@ class PRIMSDatabase:
 
         for index, row in predicted_ingredients_df.iterrows():
             if predicted_ingredients_df.loc[index, 'stock_update'] < 0:
-                predicted_ingredients_dict[predicted_ingredients_df.loc[index, 'ingredient_name']] = int(-1* predicted_ingredients_df.loc[index, 'stock_update'])
-        
+                predicted_ingredients_dict[predicted_ingredients_df.loc[index, 'ingredient_name']] = int(
+                    -1 * predicted_ingredients_df.loc[index, 'stock_update'])
+
         return predicted_ingredients_dict
 
     def get_inventory(self):
@@ -142,7 +146,7 @@ class PRIMSDatabase:
 
         for index, row in inventory_df.iterrows():
             inventory_dict[inventory_df.loc[index, 'ingredient_name']] = int(inventory_df.loc[index, 'quantity'])
-        
+
         return inventory_dict
 
     def update_inventory(self, week):
@@ -186,10 +190,10 @@ class PRIMSDatabase:
 
                 # Loop through the inventory updates and execute them one by one
                 for ingredient_id, update_qty in inventory_updates.items():
-                    update_sql = text(f"UPDATE inventory SET quantity = quantity + {update_qty} WHERE ingredient_id = {ingredient_id}")
+                    update_sql = text(
+                        f"UPDATE inventory SET quantity = quantity + {update_qty} WHERE ingredient_id = {ingredient_id}")
                     conn.execute(update_sql)
                     print(f"Executed update for ingredient {ingredient_id} with change of {update_qty}.")
-
 
     def get_performance_parameter(self, week, parameter_name):
         query = f'''
@@ -207,40 +211,44 @@ class PRIMSDatabase:
             return None
 
     def update_performance_parameter(self, week, parameter_name, value):
-        parameter = pd.read_sql(f"SELECT parameter_id FROM performance_parameters WHERE parameter_name='{parameter_name}'", con=self.engine)
-        
+        parameter = pd.read_sql(
+            f"SELECT parameter_id FROM performance_parameters WHERE parameter_name='{parameter_name}'", con=self.engine)
+
         with self.engine.begin() as conn:
             if self.get_performance_parameter(week, parameter_name) is None:
-                sql = text(f"INSERT INTO performance_matrix (week, parameter_id, value) VALUES ({week}, {parameter['parameter_id'].iloc[0]}, {round(value, 2)})")
+                sql = text(
+                    f"INSERT INTO performance_matrix (week, parameter_id, value) VALUES ({week}, {parameter['parameter_id'].iloc[0]}, {round(value, 2)})")
             else:
-                sql = text(f"UPDATE performance_matrix SET value = {round(value, 2)} WHERE week = {week} AND parameter_id = {parameter['parameter_id'].iloc[0]}")
+                sql = text(
+                    f"UPDATE performance_matrix SET value = {round(value, 2)} WHERE week = {week} AND parameter_id = {parameter['parameter_id'].iloc[0]}")
             conn.execute(sql)
 
     def update_orders(self, df):
         orders = df[['week', 'recipe_id', 'price']]
         orders.to_sql('orders', con=self.engine, index=False, if_exists='append')
-    
-    def get_predicted_orders(self,week):
+
+    def get_predicted_orders(self, week):
         predicted_orders = pd.read_sql(
             f'''SELECT a.week, b.recipe_name, a.num_orders FROM predicted_orders a INNER JOIN recipes b ON a.recipe_id = b.recipe_id WHERE a.week = {week}''',
             con=self.engine
         )
-        
+
         if not predicted_orders.empty:
             return predicted_orders
         else:
             return None
 
-    def get_predicted_orders_json(self,week):
+    def get_predicted_orders_json(self, week):
         predicted_orders_df = self.get_predicted_orders(week)
 
         predicted_orders_dict = dict()
 
         for index, row in predicted_orders_df.iterrows():
-            predicted_orders_dict[predicted_orders_df.loc[index, 'recipe_name']] = int(predicted_orders_df.loc[index, 'num_orders'])
-        
+            predicted_orders_dict[predicted_orders_df.loc[index, 'recipe_name']] = int(
+                predicted_orders_df.loc[index, 'num_orders'])
+
         return predicted_orders_dict
-        
+
     def update_predicted_orders(self, df):
 
         predicted_orders = df[['week', 'recipe_id', 'num_orders']]
@@ -248,23 +256,27 @@ class PRIMSDatabase:
         with self.engine.begin() as conn:
             for _, row in predicted_orders.iterrows():
                 if self.get_predicted_orders(row.week) is None:
-                    sql = text(f"INSERT INTO predicted_orders (week, recipe_id, num_orders) VALUES ({row.week}, {row.recipe_id}, {row.num_orders})")
+                    sql = text(
+                        f"INSERT INTO predicted_orders (week, recipe_id, num_orders) VALUES ({row.week}, {row.recipe_id}, {row.num_orders})")
                 else:
-                    sql = text(f"UPDATE predicted_orders SET num_orders = {row.num_orders} WHERE week = {row.week} AND recipe_id = {row.recipe_id}")
+                    sql = text(
+                        f"UPDATE predicted_orders SET num_orders = {row.num_orders} WHERE week = {row.week} AND recipe_id = {row.recipe_id}")
                 conn.execute(sql)
 
     def generate_simulated_food_orders(self, week):
-        recipe_ids = pd.read_sql("SELECT DISTINCT a.recipe_id, b.recipe_name FROM orders a INNER JOIN recipes b ON a.recipe_id = b.recipe_id", con=self.engine)
+        recipe_ids = pd.read_sql(
+            "SELECT DISTINCT a.recipe_id, b.recipe_name FROM orders a INNER JOIN recipes b ON a.recipe_id = b.recipe_id",
+            con=self.engine)
         recipe_ids['week'] = week
         recipe_ids['price'] = [random.randint(1, 10) for _ in range(len(recipe_ids))]
         chosen_idx = np.random.choice(recipe_ids.index, replace=True, size=random.randint(1, 5))
         simulated_orders = recipe_ids.loc[chosen_idx]
         self.update_orders(simulated_orders)
         return simulated_orders
-    
+
     def generate_simulated_food_orders_json(self, week):
         simulated_orders_df = self.generate_simulated_food_orders(week)
-        
+
         simulated_orders_dict = dict()
 
         recipe_counts = simulated_orders_df['recipe_name'].value_counts()
@@ -275,7 +287,9 @@ class PRIMSDatabase:
         return simulated_orders_dict
 
     def predict_random_orders(self, week):
-        recipe_ids = pd.read_sql("SELECT DISTINCT a.recipe_id, b.recipe_name FROM orders a INNER JOIN recipes b ON a.recipe_id = b.recipe_id", con=self.engine)
+        recipe_ids = pd.read_sql(
+            "SELECT DISTINCT a.recipe_id, b.recipe_name FROM orders a INNER JOIN recipes b ON a.recipe_id = b.recipe_id",
+            con=self.engine)
         recipe_ids['week'] = week
         chosen_idx = np.random.choice(recipe_ids.index, replace=True, size=random.randint(1, 5))
         predicted_orders = recipe_ids.loc[chosen_idx]

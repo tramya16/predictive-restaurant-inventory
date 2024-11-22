@@ -92,7 +92,7 @@ class ModelBuilder:
 
     def build_sarima_model(self, col_name: str, order: Union[tuple, None] = None,
                            seasonal_order: Union[tuple, None] = None,
-                           method: Union[tuple, str] = None, data: Union[pd.Series, None] = None):
+                           method: Union[None, str] = None, data: Union[pd.Series, None] = None):
         if not order or not seasonal_order:
             if method is None:
                 raise Exception("Method to determine the best SARIMA model not specified!")
@@ -100,7 +100,7 @@ class ModelBuilder:
             if method == "auto_arima":
                 order, seasonal_order = self.choosing_sarima_w_auto_arima(col_name=col_name)
             elif method == "skforecast":
-                params = self.choosing_sarima_model(col_name=col_name)
+                params = self.choosing_sarima_model(col_name=col_name)[0]
                 order, seasonal_order = params[:3], params[3:]
         sarima_model = Sarimax(order=order, seasonal_order=seasonal_order)
         data = self.training_data[col_name] if data is None else data
