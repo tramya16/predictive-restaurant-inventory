@@ -1,11 +1,18 @@
 from flask import Flask, render_template, jsonify
 from datetime import datetime
 from db_config import *
-from settings import *
+from settings import DB_USERNAME, DB_PASSWORD, DB_HOST, DB_NAME, CSV_DIR
+from training_and_diagnostics.predictor import Muaddib
+import pandas as pd
+import sys
+from order_simulator import OrderSimulator1
+
 
 app = Flask(__name__)
 db_url = 'mysql+pymysql://{}:{}@{}/{}?ssl_disabled=true'.format(DB_USERNAME, DB_PASSWORD, DB_HOST, DB_NAME)
 db = PRIMSDatabase(db_url, CSV_DIR)
+
+
 
 @app.route('/mocked-data')
 def get_mocked_data():
@@ -13,22 +20,43 @@ def get_mocked_data():
 
     # Generate new data only if 5 seconds have passed
     if current_time - db.last_update_time >= 5:
-        start_date = pd.to_datetime(START_DATE)
+        
+        oracle = Muaddib(model_name='sk_sarima')
+        predictions = oracle.predict(start_dt=db.start_date, end_dt=db.start_date + pd.Timedelta(days=6))
+        weekly_predictions=predictions.sum()
+    
 
-        db.update_performance_parameter(db.current_week, "model_accuracy", random.uniform(80.0, 95.0))
-        db.predict_random_orders(db.current_week)
+        simulate_orders=OrderSimulator1()
+        simulated_orders=simulate_orders.simulate_orders(start_dt=db.start_date, end_dt=db.start_date + pd.Timedelta(days=6))
+        weekly_simulations=simulated_orders['orders'].sum()
+        print(weekly_simulations)
+
+        error=oracle.calculate_rmse(predictions,simulated_orders)
+        accuracy=oracle.calculate_accuracy(predictions,simulated_orders)
+        print(accuracy,error)
+
+        db.update_performance_parameter(db.current_week, "model_accuracy", accuracy)
+        # db.predict_random_orders(db.current_week )
+
+        prediction_df = pd.DataFrame()
+        prediction_df['week'] = [db.current_week]
+        prediction_df['num_orders'] = weekly_predictions
+        prediction_df['recipe_id'] = [1]
+        db.update_predicted_orders(prediction_df)
 
         accuracy = db.get_performance_parameter(db.current_week, "model_accuracy")
         db.model_accuracy.append(accuracy)
 
         db.predicted_food_orders = db.get_predicted_orders_json(db.current_week)
-        db.simulated_food_orders = db.generate_simulated_food_orders_json(db.current_week)
+        db.simulated_food_orders = db.generate_simulated_food_orders_json(db.current_week, weekly_simulations)
 
         # Update the ingredient inventory and track how much was restocked
         db.update_inventory(db.current_week)
         restocked_ingredients = db.restocked_ingredients
         db.current_week += 1
         db.last_update_time = current_time
+        db.start_date = db.start_date + pd.Timedelta(days=7)
+        print("start date updated: ", db.start_date)
 
     else:
         restocked_ingredients = db.restocked_ingredients

@@ -2,11 +2,11 @@ import pandas as pd
 from typing import Union
 import numpy as np
 
-from app.settings import HIST_DATA_PATH
-from app.training_and_diagnostics.model_builder import ModelBuilder
+from settings import HIST_DATA_PATH
+from training_and_diagnostics.model_builder import ModelBuilder
 
 
-class OrderSimulator:
+class OrderSimulator1:
     def __init__(self, path: Union[str, None] = None):
         path = HIST_DATA_PATH if path is None else path
         self.original_df = pd.read_csv(path)

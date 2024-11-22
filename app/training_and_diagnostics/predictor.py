@@ -28,10 +28,9 @@ class Muaddib:
     def calculate_rmse(predictions: Union[pd.Series, list], actual_values: Union[pd.Series, list]):
         return np.sqrt(mean_squared_error(actual_values, predictions))
 
-    @staticmethod
-    def calculate_mape(predictions: Union[pd.Series, list], actual_values: Union[pd.Series, list]):
-        return mean_absolute_percentage_error(actual_values, predictions)
-
+    def calculate_accuracy(self, predictions: Union[pd.Series, list], actual_values: Union[pd.Series, list]):
+        rmse = self.calculate_rmse(predictions, actual_values)
+        return (1 - (rmse/np.mean(actual_values))) * 100
 
 # if __name__ == "__main__":
 #     from app.simultation.order_simulator import OrderSimulator

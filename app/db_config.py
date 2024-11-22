@@ -7,6 +7,7 @@ import numpy as np
 import time
 from settings import *
 
+
 class PRIMSDatabase:
     def __init__(self, db_url, csv_dir):
         # Initialize database connection and metadata
@@ -25,6 +26,7 @@ class PRIMSDatabase:
         self.model_accuracy = []
         self.restocked_ingredients = dict()
         self.sd = SD_WEEKLY_ORDERS 
+        self.start_date= pd.to_datetime(START_DATE)  
 
     def create_tables(self):
         # Inventory table
@@ -287,13 +289,13 @@ class PRIMSDatabase:
                         f"UPDATE predicted_orders SET num_orders = {row.num_orders} WHERE week = {row.week} AND recipe_id = {row.recipe_id}")
                 conn.execute(sql)
 
-    def generate_simulated_food_orders(self, week):
+    def generate_simulated_food_orders(self, week, num_orders):
         recipe_ids = pd.read_sql(
             "SELECT DISTINCT b.recipe_id, b.recipe_name FROM recipes b",
             con=self.engine)
         simulated_orders = pd.DataFrame()
         simulated_orders['week'] = [week]
-        simulated_orders['num_orders'] = [random.randint(1000, 1500)]
+        simulated_orders['num_orders'] = num_orders
         simulated_orders['recipe_id'] = [recipe_ids["recipe_id"][0]]
         simulated_orders['recipe_name'] = [recipe_ids["recipe_name"][0]]
 
@@ -305,10 +307,8 @@ class PRIMSDatabase:
         else:
             return None
 
-    def generate_simulated_food_orders_json(self, week):
-        simulated_orders_df = self.generate_simulated_food_orders(week)
-
-        print(simulated_orders_df)
+    def generate_simulated_food_orders_json(self, week, num_orders):
+        simulated_orders_df = self.generate_simulated_food_orders(week, num_orders)
 
         simulated_orders_dict = dict()
 
