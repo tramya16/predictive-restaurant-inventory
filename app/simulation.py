@@ -1,3 +1,4 @@
+
 import dash
 from dash import dcc, html
 import plotly.graph_objs as go
@@ -58,11 +59,11 @@ df = create_simulated_dataset(initial_date, initial_end_date)
 
 # Layout of the dashboard
 app.layout = html.Div([
-    html.H1("Weekly Orders Prediction Dashboard"),
+    html.H1("Weekly Orders Dashboard"),
     dcc.Graph(id='orders-graph'),
     dcc.Interval(
         id='graph-update',
-        interval=2000,  # Update every 2 seconds
+        interval=5000,  # Update every 5 seconds
         n_intervals=0
     )
 ])
@@ -92,17 +93,18 @@ def update_graph(n_intervals):
     })
 
     # Append predictions to the dataset
-    df = pd.concat([df, predicted_data], ignore_index=True)
+    df1 = df
 
-    # Keep only predictions for the dashboard
-    df = df[df['date'] >= pd.Timestamp("2023-01-01")]
+    # Filter for the last 3 weeks of data
+    three_weeks_ago = df1['date'].max() - timedelta(weeks=3)
+    df1 = df1[df1['date'] >= three_weeks_ago]
 
     # Create the plot
     fig = go.Figure()
 
     # Add trace for predictions
     fig.add_trace(go.Scatter(
-        x=df['date'], y=df['orders'],
+        x=df1['date'], y=df1['orders'],
         mode='lines+markers',
         name='Predicted Orders',
         line=dict(color='royalblue'),
@@ -111,7 +113,7 @@ def update_graph(n_intervals):
 
     # Update layout
     fig.update_layout(
-        title="Predicted Orders for Upcoming Weeks",
+        title="Orders for Last 3 Weeks",
         xaxis_title="Date",
         yaxis_title="Orders",
         template="plotly_dark"
