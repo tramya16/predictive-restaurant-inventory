@@ -186,6 +186,11 @@ h1 {
     font-weight: bold;
     color: #28a745;
 }
+#food-orders-line-chart {
+    width: 300px; /* Set the width of the canvas */
+    height: 150px; /* Set the height of the canvas */
+}
+
 
 /* Chart Container */
 #accuracy-chart {

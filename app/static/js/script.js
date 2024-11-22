@@ -1,11 +1,8 @@
-const INITIAL_STOCK = 50; // Initial stock set to 100 for comparison
+const INITIAL_STOCK = 1700; // Initial stock set to 100 for comparison
 const THRESHOLD_PERCENTAGE = 0.25; // 25% threshold for low stock
-let accuracyChart = null;
-let accuracyData = [];
-let weekLabels = [];
+let fetchInterval = null, chartUpdateInterval = null;
 
-let fetchInterval = null, timeInterval = null;
-
+// Fetch data from the mocked API
 async function fetchData() {
     try {
         const response = await fetch('/mocked-data');
@@ -23,68 +20,125 @@ async function fetchData() {
 
         // Update orders by Food Items
         updatePastaOrdersUIWithIconsAndStatus(data.food_orders_this_week.Pasta, data.predicted_food_orders.Pasta);
-
-        // Update model accuracy data for the graph
-        const latestAccuracy = data.model_accuracy; // Get accuracy for the current week
-        console.log(latestAccuracy)
-        
-
     } catch (error) {
         console.error('Error fetching data:', error);
     }
 }
 
+// Function to create the line chart
+let foodOrdersLineChart = null;
+let weeks = [];
+let actualOrdersData = [];
+let predictedOrdersData = [];
 
+function createFoodOrdersLineChart() {
+    const ctx = document.getElementById('food-orders-line-chart').getContext('2d');
+    foodOrdersLineChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: weeks,
+            datasets: [
+                {
+                    label: 'Actual Orders',
+                    data: actualOrdersData,
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    fill: false,
+                    tension: 0.1,
+                    borderWidth: 2,
+                },
+                {
+                    label: 'Predicted Orders',
+                    data: predictedOrdersData,
+                    borderColor: 'rgba(255, 159, 64, 1)',
+                    backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                    fill: false,
+                    tension: 0.1,
+                    borderWidth: 2,
+                },
+            ],
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: { title: { display: true, text: 'Week Number' } },
+                y: { beginAtZero: true, title: { display: true, text: 'Number of Orders' } },
+            },
+        },
+    });
+}
 
+// Update the line chart
+async function updateFoodOrdersLineChart() {
+    try {
+        const response = await fetch('/mocked-data');
+        const data = await response.json();
 
+        const currentWeek = data.current_week;
+        const actualOrders = data.food_orders_this_week.Pasta;
+        const predictedOrders = data.predicted_food_orders.Pasta;
 
-function updateInventoryTile(food, stock, restockedAmount) {
-    const tile = document.getElementById(food);
-    const stockElement = document.getElementById(`${food}-quantity`);
-    stockElement.textContent = stock;
+        if (!weeks.includes(currentWeek)) {
+            weeks.push(currentWeek);
+            actualOrdersData.push(actualOrders);
+            predictedOrdersData.push(predictedOrders);
+        }
 
-    // Create restock amount animation inside the tile
-    if (restockedAmount > 0) {
-        const restockNotification = document.createElement('span');
-        restockNotification.classList.add('restock-notification');
-        restockNotification.textContent = `+${restockedAmount}`;
-
-        // Append the notification to the tile's quantity element for animation
-        stockElement.appendChild(restockNotification);
-
-        // Animate the restock notification
-        setTimeout(() => {
-            restockNotification.classList.add('show');
-        }, 100); // Delay to ensure it's visible for animation
-
-        // Clean up the notification after a short delay
-        setTimeout(() => {
-            restockNotification.classList.remove('show');
-            setTimeout(() => {
-                restockNotification.remove();
-            }, 500); // Wait for the fade-out animation to finish
-        }, 1000); // Show restock for 2 seconds
-    }
-
-    const percentage = stock / INITIAL_STOCK;
-
-    if (percentage < THRESHOLD_PERCENTAGE) {
-        tile.classList.add('danger');
-        tile.classList.remove('warning', 'success');
-    } else if (percentage < 0.7) {
-        tile.classList.add('warning');
-        tile.classList.remove('danger', 'success');
-    } else {
-        tile.classList.add('success');
-        tile.classList.remove('danger', 'warning');
+        if (foodOrdersLineChart) {
+            foodOrdersLineChart.update();
+        }
+    } catch (error) {
+        console.error('Error updating food orders chart:', error);
     }
 }
 
+// Update inventory tiles
+function updateInventoryTile(ingredient, currentQuantity, restockedQuantity) {
+    const tile = document.getElementById(ingredient);
+    const quantityDisplay = document.getElementById(`${ingredient}-quantity`);
+    const notificationPlaceholder = tile.querySelector('.restock-notification-placeholder');
+
+    if (tile && quantityDisplay && notificationPlaceholder) {
+        // Show the restocked amount temporarily
+        if (restockedQuantity > 0) {
+            // Temporarily add the restocked amount to stock
+            quantityDisplay.textContent = `Stock: ${currentQuantity + restockedQuantity}`;
+
+            // Update the notification
+            notificationPlaceholder.textContent = `Restocked: +${restockedQuantity}`;
+
+            // After 1 second, revert to actual stock and clear notification
+            setTimeout(() => {
+                quantityDisplay.textContent = `Stock: ${currentQuantity}`;
+                notificationPlaceholder.textContent = ''; // Clear notification
+            }, 2000); // 1 second delay
+        } else {
+            // If no restock, show the actual stock
+            quantityDisplay.textContent = `Stock: ${currentQuantity}`;
+            notificationPlaceholder.textContent = ''; // Ensure no notification
+        }
+
+        // Apply "danger" class if stock is below threshold
+        const THRESHOLD_PERCENTAGE = 0.3; // Example threshold: 20%
+        const INITIAL_STOCK = 100; // Replace with your actual initial stock
+        if (currentQuantity < INITIAL_STOCK * THRESHOLD_PERCENTAGE) {
+            tile.classList.add('danger');
+        } else {
+            tile.classList.remove('danger');
+        }
+    }
+}
+
+
+
+// Update orders with icons
+// Update orders with icons and number of orders
 function updatePastaOrdersUIWithIconsAndStatus(actualOrderCount, predictedOrderCount) {
     const iconContainer = document.getElementById('pasta-order-icons');
     const orderCountDisplay = document.getElementById('pasta-order-count');
     const predictedOrderCountDisplay = document.getElementById('pasta-predicted-order-count');
 
+    // Clear existing pasta icons
     iconContainer.innerHTML = '';
 
         const text = document.createElement('span');
@@ -111,14 +165,18 @@ function updatePastaOrdersUIWithIconsAndStatus(actualOrderCount, predictedOrderC
 // Toggle button functionality
 document.getElementById('toggle-button').addEventListener('click', () => {
     const button = document.getElementById('toggle-button');
-    if (!fetchInterval && !timeInterval) {
-        fetchInterval = setInterval(fetchData, 1000);
+    if (!fetchInterval && !chartUpdateInterval) {
+        fetchInterval = setInterval(fetchData, 5000);
+        chartUpdateInterval = setInterval(updateFoodOrdersLineChart, 5000);
         button.textContent = 'Stop';
     } else {
         clearInterval(fetchInterval);
-        clearInterval(timeInterval);
+        clearInterval(chartUpdateInterval);
         fetchInterval = null;
-        timeInterval = null;
+        chartUpdateInterval = null;
         button.textContent = 'Start';
     }
 });
+
+// Initialize the line chart
+createFoodOrdersLineChart();

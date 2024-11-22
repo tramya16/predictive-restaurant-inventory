@@ -11,74 +11,78 @@
 </head>
 <body>
     <div class="container">
-        <h1>Predictive Restaurant Inventory Management</h1>
-
-        <!-- Current Time -->
-        <!-- <div id="current-time">
-            <p>Current Time: <span id="current-time-display">Loading...</span></p>
-        </div> -->
+        <h1 style="font-size: 24px;">Predictive Restaurant Inventory Management</h1>
 
         <!-- Current Week -->
         <div id="current-week">
             <h2>Current Week: <span id="current-week-number">Loading...</span></h2>
-            <button id="toggle-button" class="btn btn-outline-primary">Start</button>
+            <button id="toggle-button" class="btn btn-outline-primary btn-sm">Start</button>
         </div>
 
-        <!-- Pasta Orders Section with Actual and Predicted Orders -->
-        <div id="orders-pasta">
-            <h3>Orders for Pasta</h3>
-            
-            <!-- Container for displaying Actual and Predicted Orders -->
-            <div class="order-container">
-                <div class="order-icons-container" id="pasta-order-icons"></div>
+        <!-- First Row: Pasta Orders and Graph Section -->
+        <div class="row">
+            <!-- Pasta Orders Section -->
+            <div class="col-md-6" style="font-size: 14px;">
+                <h3>Orders for Pasta</h3>
                 
-                <!-- Display Actual Orders -->
-                <div class="order-count" id="pasta-order-count">Actual Orders: Loading...</div>
-                
-                <!-- Display Predicted Orders -->
-                <div class="predicted-order-count" id="pasta-predicted-order-count">Predicted Orders: Loading...</div>
+                <!-- Container for displaying Actual and Predicted Orders -->
+                <div class="order-container" style="font-size: 12px;">
+                    <div class="order-icons-container" id="pasta-order-icons"></div>
+                    
+                    <!-- Display Actual Orders -->
+                    <div class="order-count" id="pasta-order-count">Actual Orders: Loading...</div>
+                    
+                    <!-- Display Predicted Orders -->
+                    <div class="predicted-order-count" id="pasta-predicted-order-count">Predicted Orders: Loading...</div>
+                </div>
+
+                            <!-- Second Row: Inventory Section -->
+            <div class="row">
+                <div class="col-12">
+                    <h3>Inventory</h3>
+                    <div class="tile-container" id="inventory">
+                        <!-- Each Inventory Tile -->
+                        <div class="tile" id="tomato" style="font-size: 12px; margin-bottom: 10px;">
+                            <img src="static/images/tomato.png" alt="Tomato" class="icon image" style="width: 30px; height: 30px;">
+                            <h3 style="font-size: 12px;">Tomato</h3>
+                            <p class="quantity" id="tomato-quantity">Loading...</p>
+                            <div class="restock-notification-placeholder"></div>
+                        </div>
+
+                        <div class="tile" id="spaghetti" style="font-size: 12px; margin-bottom: 10px;">
+                            <img src="static/images/spaghetti.png" alt="Spaghetti" class="icon image" style="width: 30px; height: 30px;">
+                            <h3 style="font-size: 12px;">Spaghetti</h3>
+                            <p class="quantity" id="spaghetti-quantity">Loading...</p>
+                            <div class="restock-notification-placeholder"></div>
+                        </div>
+
+                        <div class="tile" id="cheese" style="font-size: 12px; margin-bottom: 10px;">
+                            <img src="static/images/cheese.png" alt="Cheese" class="icon image" style="width: 30px; height: 30px;">
+                            <h3 style="font-size: 12px;">Cheese</h3>
+                            <p class="quantity" id="cheese-quantity">Loading...</p>
+                            <div class="restock-notification-placeholder"></div>
+                        </div>
+
+                        <div class="tile" id="basil" style="font-size: 12px; margin-bottom: 10px;">
+                            <img src="static/images/basil.png" alt="Basil" class="icon image" style="width: 30px; height: 30px;">
+                            <h3 style="font-size: 12px;">Basil</h3>
+                            <p class="quantity" id="basil-quantity">Loading...</p>
+                            <div class="restock-notification-placeholder"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             </div>
 
-
+            <!-- Order Graph Section -->
+            <div class="col-md-6">
+                <h3>Order Graph</h3>
+                <!-- Smaller Graph (width: 200px, height: 200px) -->
+                <canvas id="food-orders-line-chart" width="200" height="150vh"></canvas>
+            </div>
         </div>
-
-
-        <!-- Inventory Section -->
-        <div class="tile-container" id="inventory">
-            <div class="tile" id="tomato">
-                <img src="static/images/tomato.png" alt="Tomato" class="icon image">
-                <h3>Tomato</h3>
-                <p class="quantity" id="tomato-quantity">Loading...</p>
-            </div>
-        
-            <div class="tile" id="spaghetti">
-                <img src="static/images/spaghetti.png" alt="Spaghetti" class="icon image">
-                <h3>Spaghetti</h3>
-                <p class="quantity" id="spaghetti-quantity">Loading...</p>
-            </div>
-        
-            <div class="tile" id="cheese">
-                <img src="static/images/cheese.png" alt="Cheese" class="icon image">
-                <h3>Cheese</h3>
-                <p class="quantity" id="cheese-quantity">Loading...</p>
-            </div>
-        
-            <div class="tile" id="basil">
-                <img src="static/images/basil.png" alt="Basil" class="icon image">
-                <h3>Basil</h3>
-                <p class="quantity" id="basil-quantity">Loading...</p>
-            </div>
-        </div>
-        
-        
-
-        <!-- Model Accuracy Chart -->
-        <div id="accuracy-chart">
-            <!--<canvas id="accuracy-chart-canvas"></canvas> -->
-            <iframe style="border: none; width: 100%; height: 50vh;" src="http://127.0.0.1:8050/"></iframe>
-        </div>
-
     </div>
 
-    <script src="static/js/script.js"></script></body>
+    <script src="static/js/script.js"></script>
+</body>
 </html>
