@@ -6,6 +6,7 @@ from sklearn.metrics import mean_squared_error
 from pmdarima.arima import auto_arima
 from typing import Union
 from statsmodels.tsa.holtwinters import ExponentialSmoothing
+from statsmodels.tsa.statespace.sarimax import SARIMAX
 import os
 import joblib
 
@@ -102,10 +103,8 @@ class ModelBuilder:
             elif method == "skforecast":
                 params = self.choosing_sarima_model(col_name=col_name)[0]
                 order, seasonal_order = params[:3], params[3:]
-        sarima_model = Sarimax(order=order, seasonal_order=seasonal_order)
         data = self.training_data[col_name] if data is None else data
-        sarima_model.fit(y=data)
-        self.model = sarima_model
+        self.model = SARIMAX(data, order=order, seasonal_order=seasonal_order).fit()
 
     def test_model(self, col_name, start_idx: Union[None, int] = None, end_idx: Union[None, int] = None):
         start_idx = self.training_data.shape[0] if start_idx is None else start_idx
