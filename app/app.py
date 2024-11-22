@@ -3,13 +3,11 @@ from datetime import datetime
 from mocked_process import MockedProcess
 import time
 from db_config import *
+from settings import *
 
 app = Flask(__name__)
-db_url = 'mysql+pymysql://admin:admin@localhost/prims?ssl_disabled=true'
-csv_dir = './csv'
-db = PRIMSDatabase(db_url, csv_dir)
-MAX_HISTORY = 10  # Limit for historical data
-
+db_url = 'mysql+pymysql://{}:{}@{}/{}?ssl_disabled=true'.format(DB_USERNAME, DB_PASSWORD, DB_HOST, DB_NAME)
+db = PRIMSDatabase(db_url, CSV_DIR)
 
 @app.route('/mocked-data')
 def get_mocked_data():

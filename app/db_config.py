@@ -1,15 +1,18 @@
 import pandas as pd
 from sqlalchemy import create_engine, Table, MetaData, Column, Integer, String, ForeignKey, Float, inspect, text, insert
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy_utils import database_exists, create_database
 import random
 import numpy as np
 import time
-from settings import SD_WEEKLY_ORDERS
+from settings import *
 
 class PRIMSDatabase:
     def __init__(self, db_url, csv_dir):
         # Initialize database connection and metadata
         self.engine = create_engine(db_url)
+        if not database_exists(self.engine.url):
+            create_database(self.engine.url)
         self.metadata = MetaData()
         self.csv_dir = csv_dir
         self.current_week = 0
@@ -310,9 +313,8 @@ class PRIMSDatabase:
 
         return predicted_orders_df
 
-# Instantiate the class and pass in the database URL and CSV directory path
-# db_url = 'mysql+pymysql://admin:admin@localhost/prims?ssl_disabled=true'
-# csv_dir = 'csv'
-# prims_db = PRIMSDatabase(db_url, csv_dir)
+# # Instantiate the class and pass in the database URL and CSV directory path
+# db_url = 'mysql+pymysql://{}:{}@{}/{}?ssl_disabled=true'.format(DB_USERNAME, DB_PASSWORD, DB_HOST, DB_NAME)
+# prims_db = PRIMSDatabase(db_url, CSV_DIR)
 
 
