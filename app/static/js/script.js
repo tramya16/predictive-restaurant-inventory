@@ -1,5 +1,5 @@
 const INITIAL_STOCK = 1700; // Initial stock set to 100 for comparison
-const THRESHOLD_PERCENTAGE = 0.25; // 25% threshold for low stock
+const THRESHOLD_PERCENTAGE = 0.75; // 50% threshold for low stock
 let fetchInterval = null, chartUpdateInterval = null;
 
 // Fetch data from the mocked API
@@ -61,12 +61,19 @@ function createFoodOrdersLineChart() {
         options: {
             responsive: true,
             scales: {
-                x: { title: { display: true, text: 'Week Number' } },
-                y: { beginAtZero: true, title: { display: true, text: 'Number of Orders' } },
+                x: {
+                    title: { display: true, text: 'Week Number' },
+                },
+                y: {
+                    beginAtZero: false, // Disable automatic zero start
+                    min: 1200,          // Set minimum value
+                    title: { display: true, text: 'Number of Orders' },
+                },
             },
         },
     });
 }
+
 
 // Update the line chart
 async function updateFoodOrdersLineChart() {
@@ -91,6 +98,67 @@ async function updateFoodOrdersLineChart() {
         console.error('Error updating food orders chart:', error);
     }
 }
+
+let modelAccuracyChart = null;
+let accuracyWeeks = [];  // Weeks
+let accuracyData = [];   // Accuracy percentages
+
+function createModelAccuracyLineChart() {
+    const ctx = document.getElementById('model-accuracy-line-chart').getContext('2d');
+    modelAccuracyChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: accuracyWeeks,
+            datasets: [{
+                label: 'Model Accuracy (%)',
+                data: accuracyData,
+                borderColor: 'rgba(54, 162, 235, 1)',
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                fill: false,
+                tension: 0.1,
+                borderWidth: 2,
+            }],
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: {
+                    title: { display: true, text: 'Week Number' },
+                },
+                y: {
+                    beginAtZero: false,
+                    min: 50,   // Set a reasonable minimum for accuracy
+                    max: 100,  // Accuracy should be a percentage
+                    title: { display: true, text: 'Accuracy (%)' },
+                },
+            },
+        },
+    });
+}
+
+
+async function updateModelAccuracyChart() {
+    try {
+        const response = await fetch('/mocked-data');
+        const data = await response.json();
+
+        const currentWeek = data.current_week;
+        const accuracy = data.model_accuracy;
+
+        // Add new week and accuracy only if it's a new week
+        if (!accuracyWeeks.includes(currentWeek)) {
+            accuracyWeeks.push(currentWeek);
+            accuracyData.push(accuracy);
+        }
+
+        if (modelAccuracyChart) {
+            modelAccuracyChart.update();
+        }
+    } catch (error) {
+        console.error('Error updating model accuracy chart:', error);
+    }
+}
+
 
 // Update inventory tiles
 function updateInventoryTile(ingredient, currentQuantity, restockedQuantity) {
@@ -168,6 +236,7 @@ document.getElementById('toggle-button').addEventListener('click', () => {
     if (!fetchInterval && !chartUpdateInterval) {
         fetchInterval = setInterval(fetchData, 5000);
         chartUpdateInterval = setInterval(updateFoodOrdersLineChart, 5000);
+        setInterval(updateModelAccuracyChart, 5000);
         button.textContent = 'Stop';
     } else {
         clearInterval(fetchInterval);
@@ -180,3 +249,4 @@ document.getElementById('toggle-button').addEventListener('click', () => {
 
 // Initialize the line chart
 createFoodOrdersLineChart();
+createModelAccuracyLineChart();
