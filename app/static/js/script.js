@@ -25,6 +25,18 @@ async function fetchData() {
     }
 }
 
+function updateModel() {
+    const selectedModel = document.getElementById("modelSelector").value;
+    fetch('/update-model', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model_name: selectedModel }),
+    })
+    .then(response => response.json())
+    .then(data => alert("Model updated to: " + data.model_name))
+    .catch(error => console.error('Error:', error));
+  }
+
 // Function to create the line chart
 let foodOrdersLineChart = null;
 let weeks = [];
@@ -84,6 +96,8 @@ async function updateFoodOrdersLineChart() {
         const currentWeek = data.current_week;
         const actualOrders = data.food_orders_this_week.Pasta;
         const predictedOrders = data.predicted_food_orders.Pasta;
+        const selectedModel = document.getElementById("modelSelector").value;
+        console.log(selectedModel);
 
         if (!weeks.includes(currentWeek)) {
             weeks.push(currentWeek);
@@ -92,6 +106,7 @@ async function updateFoodOrdersLineChart() {
         }
 
         if (foodOrdersLineChart) {
+            foodOrdersLineChart.data.datasets[1].label = 'Predicted Orders('+ selectedModel+')';
             foodOrdersLineChart.update();
         }
     } catch (error) {
@@ -137,27 +152,52 @@ function createModelAccuracyLineChart() {
 }
 
 
+
 async function updateModelAccuracyChart() {
     try {
         const response = await fetch('/mocked-data');
         const data = await response.json();
 
+        const accuracies = data.model_accuracy; // This should be the list of accuracies
         const currentWeek = data.current_week;
-        const accuracy = data.model_accuracy;
 
-        // Add new week and accuracy only if it's a new week
-        if (!accuracyWeeks.includes(currentWeek)) {
-            accuracyWeeks.push(currentWeek);
-            accuracyData.push(accuracy);
+         // Get the currently selected model
+        const selectedModel = document.getElementById("modelSelector").value;
+        console.log(selectedModel);
+
+        // Define colors for each model
+        const modelColors = {
+            sk_sarima: 'rgba(0, 255, 0, 1)',     // Green for SARIMA
+            holt_winters: 'rgba(0, 0, 255, 1)', // Blue for Holt Winters
+        };
+
+        const selectedColor = modelColors[selectedModel] || 'rgba(75, 192, 192, 1)'; // Default color
+
+        // Check if the accuracyWeeks array is out of sync with the data
+        if (accuracyWeeks.length !== accuracies.length) {
+            // Update the weeks array
+            accuracyWeeks = Array.from({ length: accuracies.length }, (_, i) => i + 1); // Generate week numbers
+            
+            // Update the accuracy data array
+            accuracyData = [...accuracies];
         }
 
+        // Update the chart
         if (modelAccuracyChart) {
+            modelAccuracyChart.data.labels = accuracyWeeks; // Update the labels (weeks)
+            modelAccuracyChart.data.datasets[0].data = accuracyData; // Update the accuracy data
+            modelAccuracyChart.data.datasets[0].borderColor = selectedColor;
+            modelAccuracyChart.data.datasets[0].backgroundColor = selectedColor.replace('1)', '0.2)'); // Semi-transparent background
+            modelAccuracyChart.data.datasets[0].label = 'Model Accuracy (%) '+selectedModel;
             modelAccuracyChart.update();
         }
     } catch (error) {
         console.error('Error updating model accuracy chart:', error);
     }
 }
+
+
+
 
 
 // Update inventory tiles
@@ -236,7 +276,7 @@ document.getElementById('toggle-button').addEventListener('click', () => {
     if (!fetchInterval && !chartUpdateInterval) {
         fetchInterval = setInterval(fetchData, 5000);
         chartUpdateInterval = setInterval(updateFoodOrdersLineChart, 5000);
-        setInterval(updateModelAccuracyChart, 5000);
+        setInterval(updateModelAccuracyChart, 10000);
         button.textContent = 'Stop';
     } else {
         clearInterval(fetchInterval);
@@ -245,6 +285,9 @@ document.getElementById('toggle-button').addEventListener('click', () => {
         chartUpdateInterval = null;
         button.textContent = 'Start';
     }
+});
+document.getElementById('modelSelector').addEventListener('change', () => {
+    updateModelAccuracyChart();
 });
 
 // Initialize the line chart

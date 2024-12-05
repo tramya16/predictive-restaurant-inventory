@@ -45,8 +45,16 @@
   <div class="card p-3 mb-4">
     <h2>Current Week: <span id="current-week-number">Loading...</span></h2>
     <button id="toggle-button" class="btn btn-outline-primary btn-sm">Start</button>
+    <div class="ModelSelection">
+     
+      <select id="modelSelector">
+        <option value="sk_sarima">SARIMA</option>
+        <option value="holt_winters">Holt Winters</option>
+      </select>
+    
+    <button class="btn btn-outline-primary btn-sm" onclick="updateModel()">Update Model</button>
+    </div>
   </div>
-  
 <!-- Pasta Orders and Graph Section -->
 <div class="row">
     <!-- Orders for Pasta Section -->

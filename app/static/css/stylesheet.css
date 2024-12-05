@@ -91,6 +91,35 @@ h1 {
 .icon {
     font-size: 100px;
 }
+.ModelSelection {
+    align-items: center;
+}
+
+#modelSelector {
+    padding: 8px;
+    font-size: 16px;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    background-color: #fff;
+    width: 200px;
+    justify-content: flex-end;
+}
+.ModelDropdown{
+    align-self: center;
+}
+select {
+    min-width: 10ch;
+    max-width: 15ch;
+    align-self: center;
+    border: 1px solid var(--select-border);
+    border-radius: 0.25em;
+    padding: 0.25em 0.5em;
+    font-size: 1.25rem;
+    cursor: pointer;
+    line-height: 1.1;
+    background-color: #fff;
+    background-image: linear-gradient(to top, #f9f9f9, #fff 33%);
+  }
 
 .image {
     width: 1em;  /* Set width relative to font size */

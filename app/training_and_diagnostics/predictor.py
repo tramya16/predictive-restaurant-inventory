@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_squared_error, mean_absolute_percentage_error
 from statsmodels.tsa.holtwinters.results import HoltWintersResults
+from statsmodels.tsa.holtwinters.results import HoltWintersResultsWrapper
 from statsmodels.tsa.statespace.sarimax import SARIMAXResultsWrapper
 
 
@@ -19,8 +20,9 @@ class Muaddib:
     def predict(self, start_dt: str, end_dt: str):
         if isinstance(self.model, SARIMAXResultsWrapper):
             return self.model.predict(start=start_dt, end=end_dt).astype(int)
-        elif isinstance(self.model, HoltWintersResults):
-            return self.model.predict(start=start_dt, end=end_dt).astype(int)
+        elif isinstance(self.model, (HoltWintersResults, HoltWintersResultsWrapper)):
+            steps = (pd.to_datetime(end_dt) - pd.to_datetime(start_dt)).days + 1
+            return self.model.forecast(steps=steps).astype(int)
         else:
             raise Exception(f"Unknown model type: {type(self.model)}")
 

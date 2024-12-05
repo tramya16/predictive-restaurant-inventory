@@ -82,43 +82,6 @@ Visit `http://127.0.0.1:5000/` in your browser to see the app.
 
 ---
 
-## Database Setup  
-
-Follow these steps to create the database and configure the user for this project:  
-
-1. **Access phpMyAdmin**  
-   - Open your browser and navigate to `http://localhost/phpmyadmin`.  
-   - Log in with the default credentials (usually `root` with no password).  
-
-2. **Create a Database**  
-   - Click on the **Databases** tab at the top.  
-   - In the "Create database" section:  
-     - Enter `prims` as the database name.  
-     - Choose the collation `utf8mb4_general_ci` (recommended for compatibility).  
-     - Click **Create**.  
-
-3. **Create a User**  
-   - Navigate to the **User accounts** tab in phpMyAdmin.  
-   - Click **Add user account**.  
-   - Fill in the details:  
-     - **Username**: `admin`  
-     - **Host name**: enter `localhost`.  
-     - **Password**: `admin`  
-     - **Re-type Password**: `admin`  
-
-4. **Grant Privileges**  
-   - Under the "Database for user" section:  
-     - Select **Grant all privileges on database 'prims'**.  
-   - Alternatively, scroll down to the "Global privileges" section and click **Check all**.  
-
-5. **Apply Changes**  
-   - Click **Go** to save the user and their privileges.  
-
-6. **Verify Configuration**  
-   - Return to the **User accounts** tab to confirm that the `admin` user has been created and assigned to the `prims` database.  
-
----
-
 ## Folder Structure
 
 ```
