@@ -47,7 +47,15 @@ pip install -r requirements.txt
 ```bash
 pip3 install -r requirements.txt
 ```
-### Step 4: Run the Flask Application
+### Step 4: Adding models and historical data
+1. **add machine learning models**
+   - Go to https://drive.google.com/drive/folders/1L-UlaPMUdI_u0AEjKQIcE9TReMveopUS and download all the '.pkl' files. These are the trained models.
+   - Place the '.pkl' files into the app/models/ directory of this project.
+2. **add the historical dataset**
+   - Go to https://drive.google.com/drive/folders/1L-UlaPMUdI_u0AEjKQIcE9TReMveopUS and download the 'historical_data.csv' file.
+   - Place the file in the home directory of your system. For example - /Users/lakshya in MacOS, C:\Users\lakshya in Windows, and /home/lakshya in Linux.
+
+### Step 5: Run the Flask Application
 
 Run the Flask app with:
 
