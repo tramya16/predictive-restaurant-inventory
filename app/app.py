@@ -4,9 +4,7 @@ from db_config import *
 from settings import DB_USERNAME, DB_PASSWORD, DB_HOST, DB_NAME, CSV_DIR
 from training_and_diagnostics.predictor import Muaddib
 import pandas as pd
-import sys
 from order_simulator import OrderSimulator1
-
 
 app = Flask(__name__)
 db_url = 'mysql+pymysql://{}:{}@{}/{}?ssl_disabled=true'.format(DB_USERNAME, DB_PASSWORD, DB_HOST, DB_NAME)
@@ -14,27 +12,30 @@ db = PRIMSDatabase(db_url, CSV_DIR)
 
 # Variable to store the currently selected model
 current_model_name = "sk_sarima"  # Default model
+
+
 @app.route('/mocked-data')
 def get_mocked_data():
     current_time = time.time()
 
     # Generate new data only if 5 seconds have passed
     if current_time - db.last_update_time >= 5:
-        
+
         oracle = Muaddib(model_name=current_model_name)
         predictions = oracle.predict(start_dt=db.start_date, end_dt=db.start_date + pd.Timedelta(days=6))
-        weekly_predictions=predictions.sum()
+        weekly_predictions = predictions.sum()
         print(str(predictions))
 
-        simulate_orders=OrderSimulator1()
+        simulate_orders = OrderSimulator1()
         print(str(simulate_orders))
-        simulated_orders=simulate_orders.simulate_orders(start_dt=db.start_date, end_dt=db.start_date + pd.Timedelta(days=6))
-        weekly_simulations=simulated_orders['orders'].sum()
+        simulated_orders = simulate_orders.simulate_orders(start_dt=db.start_date,
+                                                           end_dt=db.start_date + pd.Timedelta(days=6))
+        weekly_simulations = simulated_orders['orders'].sum()
         print(weekly_simulations)
 
-        error=oracle.calculate_rmse(predictions,simulated_orders)
-        accuracy=oracle.calculate_accuracy(predictions,simulated_orders)
-        print(accuracy,error)
+        error = oracle.calculate_rmse(predictions, simulated_orders)
+        accuracy = oracle.calculate_accuracy(predictions, simulated_orders)
+        print(accuracy, error)
 
         db.update_performance_parameter(db.current_week, "model_accuracy", accuracy)
         # db.predict_random_orders(db.current_week )
@@ -51,7 +52,6 @@ def get_mocked_data():
         print(f"Predictions: {predictions}")
         print(f"Simulated Orders: {simulated_orders}")
         print(f"Accuracy: {accuracy}, RMSE: {error}")
-
 
         db.predicted_food_orders = db.get_predicted_orders_json(db.current_week)
         db.simulated_food_orders = db.generate_simulated_food_orders_json(db.current_week, weekly_simulations)
@@ -79,6 +79,7 @@ def get_mocked_data():
     }
     print(data)
     return jsonify(data)
+
 
 @app.route('/update-model', methods=['POST'])
 def update_model():

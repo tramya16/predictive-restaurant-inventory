@@ -1,3 +1,5 @@
+import sys
+
 from app.training_and_diagnostics.model_builder import ModelBuilder
 import pandas as pd
 from app.settings import HIST_DATA_PATH
@@ -13,16 +15,14 @@ def main():
     model_builder.set_training_testing_split(training_end_dt="2023-03-31", testing_start_dt="2023-04-01")
     plot_df = pd.DataFrame()
     plot_df["orders"] = model_builder.testing_data["orders"]
-    print("original dataframe: ")
-    print(df)
 
-    # Best model: ARIMA(0, 0, 0)(3, 0, 0)[7]
+    # Best parameters for AIC method SARIMA: (0, 0, 0)(3, 0, 0)[7]
     model_builder.build_sarima_model(col_name="orders", order=(0, 0, 0), seasonal_order=(3, 0, 0, 7))
     test_result = model_builder.test_model(col_name="orders")
     plot_df["auto_sarima_values"] = test_result[0]
     plot_df["auto_sarima_rmse"] = test_result[1]
 
-    # Best Parameters: (2, 0, 1, 3, 0, 3, 7)
+    # Best Parameters for RMSE method SARIMA: (2, 0, 1, 3, 0, 3, 7)
     model_builder.build_sarima_model(col_name="orders", order=(2, 0, 1), seasonal_order=(3, 0, 3, 7))
     test_result = model_builder.test_model(col_name="orders")
     plot_df["sk_sarima_values"] = test_result[0]
