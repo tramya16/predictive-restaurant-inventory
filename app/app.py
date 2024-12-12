@@ -87,7 +87,7 @@ def update_model():
     data = request.get_json()
     model_name = data.get("model_name")
 
-    if model_name in ["sk_sarima", "holt_winters"]:  # Validate input
+    if model_name in ("sk_sarima", "holt_winters", "auto_sarima"):  # Validate input
         current_model_name = model_name
         return jsonify({"success": True, "model_name": current_model_name})
     else:

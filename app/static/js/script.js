@@ -169,6 +169,7 @@ async function updateModelAccuracyChart() {
         const modelColors = {
             sk_sarima: 'rgba(0, 255, 0, 1)',     // Green for SARIMA
             holt_winters: 'rgba(0, 0, 255, 1)', // Blue for Holt Winters
+            auto_sarima: 'rgba(255, 0, 0, 1)' // Red for best AIC SARIMA
         };
 
         const selectedColor = modelColors[selectedModel] || 'rgba(75, 192, 192, 1)'; // Default color
