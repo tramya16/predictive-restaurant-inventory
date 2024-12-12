@@ -45,15 +45,14 @@
   <div class="card p-3 mb-4" style="text-align: center;">
     <h2>Current Week: <span id="current-week-number">Loading...</span></h2>
     <button id="toggle-button" class="btn btn-outline-primary btn-sm">Start</button>
-    <div class="ModelSelection">
-     
-      <select id="modelSelector">
+    <div class="ModelSelection" id="modelSelection" style="display:block;">
+      <br>
+      <h3>Select your Model</h3>
+      <select id="modelSelector" onchange="updateModel()">
         <option value="sk_sarima">SARIMA</option>
         <option value="holt_winters">Holt Winters</option>
         <option value="auto_sarima">Auto SARIMA</option>
       </select>
-    
-    <button class="btn btn-outline-primary btn-sm" onclick="updateModel()">Update Model</button>
     </div>
   </div>
 <!-- Pasta Orders and Graph Section -->
