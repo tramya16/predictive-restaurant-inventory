@@ -1,218 +1,127 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Restaurant Inventory Management</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <link href="static\stylesheet.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Restaurant Inventory Management</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="static/css/stylesheet.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f8f9fa;
+    }
+    h1, h2, h3 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .card {
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      border: none;
+      margin-bottom: 20px;
+    }
+    .tile img {
+      margin-bottom: 10px;
+    }
+    .order-icons-container {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+    .btn-outline-primary {
+      display: block;
+      margin: 10px auto;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Predictive Restaurant Inventory Management</h1>
 
-        <!-- Current Week -->
-        <div id="current-week">
-            <h2>Current Week: <span id="current-week-number">Loading...</span></h2>
-            <button id="toggle-button" class="btn btn-outline-primary">Start</button>
-        </div>
-
-        <!-- Inventory Section -->
-        <div class="tile-container" id="inventory">
-            <div class="tile" id="pasta">
-                <h3>Pasta</h3>
-                <p class="quantity" id="pasta-quantity">Loading...</p>
-                <p class="predicted">Predicted: <span id="pasta-predicted">Loading...</span></p>
-                <p class="simulated">Simulated: <span id="pasta-simulated">Loading...</span></p>
-            </div>
-            <div class="tile" id="cheese_pizza">
-                <h3>Cheese Pizza</h3>
-                <p class="quantity" id="cheese_pizza-quantity">Loading...</p>
-                <p class="predicted">Predicted: <span id="cheese_pizza-predicted">Loading...</span></p>
-                <p class="simulated">Simulated: <span id="cheese_pizza-simulated">Loading...</span></p>
-            </div>
-            <div class="tile" id="garlic_bread">
-                <h3>Garlic Bread</h3>
-                <p class="quantity" id="garlic_bread-quantity">Loading...</p>
-                <p class="predicted">Predicted: <span id="garlic_bread-predicted">Loading...</span></p>
-                <p class="simulated">Simulated: <span id="garlic_bread-simulated">Loading...</span></p>
-            </div>
-            <div class="tile" id="tomato_soup">
-                <h3>Tomato Soup</h3>
-                <p class="quantity" id="tomato_soup-quantity">Loading...</p>
-                <p class="predicted">Predicted: <span id="tomato_soup-predicted">Loading...</span></p>
-                <p class="simulated">Simulated: <span id="tomato_soup-simulated">Loading...</span></p>
-            </div>
-        </div>
-
-        <!-- Orders by Category -->
-        <div id="orders-by-category">
-            <h3>Orders by Category</h3>
-            <p><span class="category italian" id="orders-italian">Italian: Loading...</span></p>
-            <p><span class="category fast-food" id="orders-fast-food">Fast Food: Loading...</span></p>
-            <p><span class="category soup" id="orders-soup">Soup: Loading...</span></p>
-        </div>
-
-        <!-- Model Accuracy Chart -->
-        <div id="accuracy-chart">
-            <h3>Model Accuracy Over Time</h3>
-            <canvas id="accuracy-chart-canvas"></canvas>
-        </div>
-
-        <!-- Current Time -->
-        <div id="current-time">
-            <p>Current Time: <span id="current-time-display">Loading...</span></p>
-        </div>
+<div class="container mt-4">
+  <h1>Predictive Restaurant Inventory Management</h1>
+  
+  <!-- Current Week Section -->
+  <div class="card p-3 mb-4" style="text-align: center;">
+    <h2>Current Week: <span id="current-week-number">Loading...</span></h2>
+    <button id="toggle-button" class="btn btn-outline-primary btn-sm">Start</button>
+    <div class="ModelSelection">
+     
+      <select id="modelSelector">
+        <option value="sk_sarima">SARIMA</option>
+        <option value="holt_winters">Holt Winters</option>
+      </select>
+    
+    <button class="btn btn-outline-primary btn-sm" onclick="updateModel()">Update Model</button>
     </div>
+  </div>
+<!-- Pasta Orders and Graph Section -->
+<div class="row">
+    <!-- Orders for Pasta Section -->
+    <div class="col-md-6">
+      <div class="card p-3 card-equal-height">
+        <h3>Orders for Pasta</h3>
+        <div class="order-container">
+          <div class="order-icons-container" id="pasta-order-icons"></div>
+          <p id="pasta-order-count">Actual Orders: Loading...</p>
+          <p id="pasta-predicted-order-count">Predicted Orders: Loading...</p>
+        </div>
+      </div>
+    </div>
+  
+    <!-- Order Graph Section -->
+    <div class="col-md-6">
+      <div class="card p-3 card-equal-height">
+        <h3>Order Graph</h3>
+        <canvas id="food-orders-line-chart"></canvas>
+      </div>
+    </div>
+  </div>
+  
+  
+  <!-- Inventory Section -->
+  <div class="card p-3 mb-4">
+    <h3>Inventory</h3>
+    <div class="row">
+      <div class="col-6 col-md-3 mb-3">
+        <div class="tile text-center" id="tomato">
+          <img src="static/images/tomato.png" alt="Tomato" class="img-fluid">
+          <h5>Tomato</h5>
+          <p id="tomato-quantity">Loading...</p>
+          <div class="restock-notification-placeholder"></div>        </div>
+      </div>
+      <div class="col-6 col-md-3 mb-3">
+        <div class="tile text-center" id="spaghetti">
+          <img src="static/images/spaghetti.png" alt="Spaghetti" class="img-fluid">
+          <h5>Spaghetti</h5>
+          <p id="spaghetti-quantity">Loading...</p>
+          <div class="restock-notification-placeholder"></div>        </div>
+      </div>
+      <div class="col-6 col-md-3 mb-3">
+        <div class="tile text-center" id="cheese">
+          <img src="static/images/cheese.png" alt="Cheese" class="img-fluid">
+          <h5>Cheese</h5>
+          <p id="cheese-quantity">Loading...</p>
+          <div class="restock-notification-placeholder"></div>        </div>
+      </div>
+      <div class="col-6 col-md-3 mb-3">
+        <div class="tile text-center" id="basil" >
+          <img src="static/images/basil.png" alt="Basil" class="img-fluid">
+          <h5>Basil</h5>
+          <p id="basil-quantity">Loading...</p>
+          <div class="restock-notification-placeholder"></div>        </div>
+      </div>
+    </div>
+  </div>
 
-    <script>
-        const INITIAL_STOCK = 100;  // Initial stock set to 100 for comparison
-        const THRESHOLD_PERCENTAGE = 0.25;  // 25% threshold for low stock
-        let accuracyChart = null;
-        let accuracyData = [];
+  <!-- Model Accuracy Section -->
+  <div class="card p-3">
+    <h3>Model Accuracy Over Weeks</h3>
+    <canvas id="model-accuracy-line-chart"></canvas>
+  </div>
+  
+</div>
 
-        let fetchInterval = null, timeInterval = null;
-
-        async function fetchData() {
-            try {
-                const response = await fetch('/mocked-data');
-                const data = await response.json();
-
-                // Update current week
-                document.getElementById('current-week-number').textContent = data.current_week;
-
-                // Update inventory quantities and check for danger
-                updateInventoryTile('pasta', data.inventory.pasta);
-                updateInventoryTile('cheese_pizza', data.inventory.cheese_pizza);
-                updateInventoryTile('garlic_bread', data.inventory.garlic_bread);
-                updateInventoryTile('tomato_soup', data.inventory.tomato_soup);
-
-                // Update predicted and simulated orders
-                document.getElementById('pasta-predicted').textContent = data.predicted_food_orders.pasta;
-                document.getElementById('cheese_pizza-predicted').textContent = data.predicted_food_orders.cheese_pizza;
-                document.getElementById('garlic_bread-predicted').textContent = data.predicted_food_orders.garlic_bread;
-                document.getElementById('tomato_soup-predicted').textContent = data.predicted_food_orders.tomato_soup;
-
-                document.getElementById('pasta-simulated').textContent = data.simulated_food_orders.pasta;
-                document.getElementById('cheese_pizza-simulated').textContent = data.simulated_food_orders.cheese_pizza;
-                document.getElementById('garlic_bread-simulated').textContent = data.simulated_food_orders.garlic_bread;
-                document.getElementById('tomato_soup-simulated').textContent = data.simulated_food_orders.tomato_soup;
-
-                // Update orders by category
-                document.getElementById('orders-italian').textContent = `Italian: ${data.orders_by_category.Italian}`;
-                document.getElementById('orders-fast-food').textContent = `Fast Food: ${data.orders_by_category.FastFood}`;
-                document.getElementById('orders-soup').textContent = `Soup: ${data.orders_by_category.Soup}`;
-
-                // Update model accuracy data for the graph
-                accuracyData = data.model_accuracy;  // Receive all accuracy data
-
-                // Update model accuracy chart
-                updateAccuracyChart();
-
-
-            } catch (error) {
-                console.error('Error fetching data:', error);
-            }
-        }
-
-        function updateAccuracyChart() {
-            const ctx = document.getElementById('accuracy-chart-canvas').getContext('2d');
-
-            if (accuracyChart) {
-        accuracyChart.destroy();
-                }
-                accuracyChart =new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: Array.from({ length: accuracyData.length }, (_, index) => `Week ${index + 1}`),
-                    datasets: [{
-                        label: 'Model Accuracy (%)',
-                        data: accuracyData,
-                        borderColor: '#28a745',
-                        backgroundColor: 'rgba(40, 167, 69, 0.2)',
-                        fill: true,
-                        tension: 0.4,
-                        pointRadius: 5
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-            legend: {
-                labels: {
-                    usePointStyle: true,
-                    boxWidth: 0 
-                }
-            }
-        },
-                    scales: {
-                        y: {
-                            min: 0,
-                            max: 100,
-                            title: {
-                                display: true,
-                                text: 'Accuracy (%)'
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Week'
-                            }
-                        }
-                    }
-                }
-            });
-
-            console.log("Chart Updates");
-        }
-
-        function updateInventoryTile(food, stock) {
-            const tile = document.getElementById(food);
-            const stockElement = document.getElementById(`${food}-quantity`);
-            stockElement.textContent = stock;
-
-            if (stock < INITIAL_STOCK * THRESHOLD_PERCENTAGE) {
-                tile.classList.add('danger');
-            } else {
-                tile.classList.remove('danger');
-            }
-        }
-
-        function updateCurrentTime() {
-                const now = new Date();
-                const hours = String(now.getHours()).padStart(2, '0');
-                const minutes = String(now.getMinutes()).padStart(2, '0');
-                const seconds = String(now.getSeconds()).padStart(2, '0');
-                const formattedTime = `${hours}:${minutes}:${seconds}`;
-                
-                document.getElementById('current-time-display').textContent = formattedTime;
-
-            }
-
-      //  setInterval(fetchData, 1000);  // Fetch data every 3 seconds
-      //  setInterval(updateCurrentTime, 1000);  // Update current time every second
-
-        // Toggle button functionality
-        document.getElementById('toggle-button').addEventListener('click', () => {
-            const button = document.getElementById('toggle-button');
-            if (!fetchInterval && !timeInterval) {
-                // Start intervals
-                fetchInterval = setInterval(fetchData, 1000);
-                timeInterval = setInterval(updateCurrentTime, 1000);
-                button.textContent = 'Stop';
-            } else {
-                // Stop intervals
-                clearInterval(fetchInterval);
-                clearInterval(timeInterval);
-                fetchInterval = null;
-                timeInterval = null;
-                button.textContent = 'Start';
-            }
-        });
-
-    </script>
+<script src="static/js/script.js"></script>
 </body>
 </html>
