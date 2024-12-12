@@ -1,12 +1,15 @@
-import pandas as pd
-from itertools import product
 from skforecast.sarimax._sarimax import Sarimax
-import numpy as np
-from sklearn.metrics import mean_squared_error
-from pmdarima.arima import auto_arima
-from typing import Union
+from statsmodels.tsa.stattools import adfuller
+from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 from statsmodels.tsa.holtwinters import ExponentialSmoothing
 from statsmodels.tsa.statespace.sarimax import SARIMAX
+from statsmodels.tsa.seasonal import seasonal_decompose
+from sklearn.metrics import mean_squared_error
+from pmdarima.arima import auto_arima
+import numpy as np
+import pandas as pd
+from typing import Union
+from itertools import product
 import os
 import joblib
 
@@ -46,6 +49,35 @@ class ModelBuilder:
         print(data[data.index.duplicated])
         data = data.resample(frequency).sum().sort_index()
         self.data = data
+
+    def __data_stationarity_test(self, col_name: str):
+        print("Using the ADF test to check if the data is stationary or not: ")
+        result = adfuller(self.data[col_name])
+        print(f'ADF statistic: {result[0]}, p-value: {result[1]}')
+        return True if result[1] <= 0.05 else False
+
+    def data_stationarity_check(self, col_name: str):
+        if not self.__data_stationarity_test(col_name):
+            # difference the data once or twice to make it stationary
+            print("Differencing data to make it stationary")
+            stationary = False
+            for i in range(1, 3):
+                self.data["orders_diff"] = self.data[col_name].diff(i)
+                if self.__data_stationarity_test(self.data["orders_diff"]):
+                    stationary = True
+                    break
+            if not stationary:
+                raise Exception("Data hasn't become stationary even after differencing twice. Evaluation required")
+        print("The data seems to be stationary.")
+
+    def seasonal_decomposition(self, col_name: str, trend: str, period: int = None, end_val: int = None):
+        print(self.data.index)
+        data = self.data[col_name] if end_val is None else self.data[:end_val][col_name]
+        return seasonal_decompose(data, model=trend, period=period)
+
+    def plot_acf_pacf(self, col_name: str, lags: int):
+        plot_acf(self.data[col_name], lags=lags),
+        plot_pacf(self.data[col_name], lags=lags)
 
     def choosing_sarima_model(self, col_name: str) -> tuple[tuple, float]:
         param_grid = {
