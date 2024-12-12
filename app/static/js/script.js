@@ -1,6 +1,7 @@
 const INITIAL_STOCK = 1700; // Initial stock set to 100 for comparison
 const THRESHOLD_PERCENTAGE = 0.75; // 50% threshold for low stock
-let fetchInterval = null, chartUpdateInterval = null;
+let fetchInterval = null, chartUpdateInterval = null,accuracyChartUpdate=null;
+let isStarted = false;
 
 // Fetch data from the mocked API
 async function fetchData() {
@@ -26,16 +27,21 @@ async function fetchData() {
 }
 
 function updateModel() {
-    const selectedModel = document.getElementById("modelSelector").value;
-    fetch('/update-model', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model_name: selectedModel }),
-    })
-    .then(response => response.json())
-    .then(data => alert("Model updated to: " + data.model_name))
-    .catch(error => console.error('Error:', error));
-  }
+    if (!isStarted) {
+        alert("Please start first!");
+        return;
+    }else{
+        const selectedModel = document.getElementById("modelSelector").value;
+        fetch('/update-model', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ model_name: selectedModel }),
+        })
+        .then(response => response.json())
+        .then(data => alert("Model updated to: " + data.model_name))
+        .catch(error => console.error('Error:', error));
+    }
+}
 
 // Function to create the line chart
 let foodOrdersLineChart = null;
@@ -58,16 +64,7 @@ function createFoodOrdersLineChart() {
                     fill: false,
                     tension: 0.1,
                     borderWidth: 2,
-                },
-                {
-                    label: 'Predicted Orders',
-                    data: predictedOrdersData,
-                    borderColor: 'rgba(255, 159, 64, 1)',
-                    backgroundColor: 'rgba(255, 159, 64, 0.2)',
-                    fill: false,
-                    tension: 0.1,
-                    borderWidth: 2,
-                },
+                }
             ],
         },
         options: {
@@ -78,7 +75,7 @@ function createFoodOrdersLineChart() {
                 },
                 y: {
                     beginAtZero: false, // Disable automatic zero start
-                    min: 1200,          // Set minimum value
+                    min: 800,          // Set minimum value
                     title: { display: true, text: 'Number of Orders' },
                 },
             },
@@ -97,18 +94,67 @@ async function updateFoodOrdersLineChart() {
         const actualOrders = data.food_orders_this_week.Pasta;
         const predictedOrders = data.predicted_food_orders.Pasta;
         const selectedModel = document.getElementById("modelSelector").value;
-        console.log(selectedModel);
 
+        const modelColors = {
+            sk_sarima:'rgba(255, 165, 0, 1)' ,     // Green for SARIMA
+            holt_winters: 'rgba(0, 255, 0, 1)', // Blue for Holt Winters
+            auto_sarima: 'rgba(255, 0, 0, 1)',      // Purple for ARIMA
+        };
+
+        const selectedColor = modelColors[selectedModel] || 'rgba(0, 0, 255, 1)'; // Default color
+
+        // Add the current week if not already present
         if (!weeks.includes(currentWeek)) {
             weeks.push(currentWeek);
-            actualOrdersData.push(actualOrders);
-            predictedOrdersData.push(predictedOrders);
+
+            // Ensure all datasets are padded with `null` for the new week
+            foodOrdersLineChart.data.datasets.forEach((dataset) => {
+                dataset.data.push(null);
+            });
         }
 
-        if (foodOrdersLineChart) {
-            foodOrdersLineChart.data.datasets[1].label = 'Predicted Orders('+ selectedModel+')';
-            foodOrdersLineChart.update();
+        // Handle the actual orders dataset
+        let actualOrdersDataset = foodOrdersLineChart.data.datasets.find(
+            (dataset) => dataset.label === 'Actual Orders'
+        );
+
+        if (!actualOrdersDataset) {
+            // Create the dataset for actual orders if it doesn't exist
+            actualOrdersDataset = {
+                label: 'Actual Orders',
+                data: Array(weeks.length).fill(null), // Initialize with null for all weeks
+                borderColor: 'rgba(0, 0, 255, 1)',    // Blue for actual orders
+                backgroundColor: 'rgba(0, 0, 255, 0.2)', // Semi-transparent background
+                borderWidth: 2,
+            };
+            foodOrdersLineChart.data.datasets.push(actualOrdersDataset);
         }
+
+        // Update the actual orders data
+        actualOrdersDataset.data[weeks.indexOf(currentWeek)] = actualOrders;
+
+        // Handle the predicted orders dataset for the selected model
+        let modelDataset = foodOrdersLineChart.data.datasets.find(
+            (dataset) => dataset.label === 'Predicted Orders (' + selectedModel + ')'
+        );
+
+        if (!modelDataset) {
+            // Create a new dataset for the selected model
+            modelDataset = {
+                label: 'Predicted Orders (' + selectedModel + ')',
+                data: Array(weeks.length).fill(null), // Initialize with null for all weeks
+                borderColor: selectedColor,
+                backgroundColor: selectedColor.replace('1)', '0.2)'), // Semi-transparent background
+                borderWidth: 2,
+            };
+            foodOrdersLineChart.data.datasets.push(modelDataset);
+        }
+
+        // Update the predicted orders data
+        modelDataset.data[weeks.indexOf(currentWeek)] = predictedOrders;
+
+        // Update the chart
+        foodOrdersLineChart.update();
     } catch (error) {
         console.error('Error updating food orders chart:', error);
     }
@@ -123,16 +169,16 @@ function createModelAccuracyLineChart() {
     modelAccuracyChart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: accuracyWeeks,
-            datasets: [{
-                label: 'Model Accuracy (%)',
-                data: accuracyData,
-                borderColor: 'rgba(54, 162, 235, 1)',
-                backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                fill: false,
-                tension: 0.1,
-                borderWidth: 2,
-            }],
+            // labels: accuracyWeeks,
+            // datasets: [{
+            //     label: 'Model Accuracy (%)',
+            //     data: accuracyData,
+            //     borderColor: 'rgba(54, 162, 235, 1)',
+            //     backgroundColor: 'rgba(54, 162, 235, 0.2)',
+            //     fill: false,
+            //     tension: 0.1,
+            //     borderWidth: 2,
+            // }],
         },
         options: {
             responsive: true,
@@ -161,44 +207,55 @@ async function updateModelAccuracyChart() {
         const accuracies = data.model_accuracy; // This should be the list of accuracies
         const currentWeek = data.current_week;
 
-         // Get the currently selected model
+        // Get the currently selected model
         const selectedModel = document.getElementById("modelSelector").value;
-        console.log(selectedModel);
+        console.log(`Selected Model: ${selectedModel}`);
 
         // Define colors for each model
         const modelColors = {
-            sk_sarima: 'rgba(0, 255, 0, 1)',     // Green for SARIMA
-            holt_winters: 'rgba(0, 0, 255, 1)', // Blue for Holt Winters
+            sk_sarima:'rgba(255, 165, 0, 1)' ,     // Green for SARIMA
+            holt_winters: 'rgba(0, 255, 0, 1)', // Blue for Holt Winters
+            auto_sarima: 'rgba(255, 0, 0, 1)',      // Purple for ARIMA
         };
 
         const selectedColor = modelColors[selectedModel] || 'rgba(75, 192, 192, 1)'; // Default color
 
-        // Check if the accuracyWeeks array is out of sync with the data
-        if (accuracyWeeks.length !== accuracies.length) {
-            // Update the weeks array
-            accuracyWeeks = Array.from({ length: accuracies.length }, (_, i) => i + 1); // Generate week numbers
-            
-            // Update the accuracy data array
-            accuracyData = [...accuracies];
+        // Check if the model is already displayed on the chart
+        const existingDatasetIndex = modelAccuracyChart.data.datasets.findIndex(
+            (dataset) => dataset.label === `Model Accuracy (%) - ${selectedModel}`
+        );
+
+        if (existingDatasetIndex === -1) {
+            // Add a new dataset for the selected model
+            const newDataset = {
+                label: `Model Accuracy (%) - ${selectedModel}`,
+                data: accuracies,
+                borderColor: selectedColor,
+                backgroundColor: selectedColor.replace('1)', '0.2)'), // Semi-transparent background
+                fill: false,
+                tension: 0.4, // Smooth curve
+            };
+
+            modelAccuracyChart.data.datasets.push(newDataset);
+        } else {
+            // Update the existing dataset for the selected model
+            modelAccuracyChart.data.datasets[existingDatasetIndex].data = accuracies;
+            modelAccuracyChart.data.datasets[existingDatasetIndex].borderColor = selectedColor;
+            modelAccuracyChart.data.datasets[existingDatasetIndex].backgroundColor = selectedColor.replace('1)', '0.2)');
         }
 
+        // Ensure the labels (weeks) are up-to-date
+        modelAccuracyChart.data.labels = Array.from(
+            { length: accuracies.length },
+            (_, i) => `Week ${i + 1}`
+        );
+
         // Update the chart
-        if (modelAccuracyChart) {
-            modelAccuracyChart.data.labels = accuracyWeeks; // Update the labels (weeks)
-            modelAccuracyChart.data.datasets[0].data = accuracyData; // Update the accuracy data
-            modelAccuracyChart.data.datasets[0].borderColor = selectedColor;
-            modelAccuracyChart.data.datasets[0].backgroundColor = selectedColor.replace('1)', '0.2)'); // Semi-transparent background
-            modelAccuracyChart.data.datasets[0].label = 'Model Accuracy (%) '+selectedModel;
-            modelAccuracyChart.update();
-        }
+        modelAccuracyChart.update();
     } catch (error) {
         console.error('Error updating model accuracy chart:', error);
     }
 }
-
-
-
-
 
 // Update inventory tiles
 function updateInventoryTile(ingredient, currentQuantity, restockedQuantity) {
@@ -270,22 +327,32 @@ function updatePastaOrdersUIWithIconsAndStatus(actualOrderCount, predictedOrderC
 }
 
 
-// Toggle button functionality
 document.getElementById('toggle-button').addEventListener('click', () => {
     const button = document.getElementById('toggle-button');
+    const modelSelection = document.getElementById('modelSelection');
+
     if (!fetchInterval && !chartUpdateInterval) {
+        // Start state
         fetchInterval = setInterval(fetchData, 5000);
         chartUpdateInterval = setInterval(updateFoodOrdersLineChart, 5000);
-        setInterval(updateModelAccuracyChart, 10000);
+        accuracyChartUpdate = setInterval(updateModelAccuracyChart, 10000);
         button.textContent = 'Stop';
+        modelSelection.style.display = 'block'; // Show model selection
+        isStarted = true;
     } else {
+        // Stop state
         clearInterval(fetchInterval);
         clearInterval(chartUpdateInterval);
+        clearInterval(accuracyChartUpdate);
         fetchInterval = null;
         chartUpdateInterval = null;
+        accuracyChartUpdate = null;
         button.textContent = 'Start';
+        modelSelection.style.display = 'none'; // Hide model selection
+        isStarted = false;
     }
 });
+
 document.getElementById('modelSelector').addEventListener('change', () => {
     updateModelAccuracyChart();
 });
